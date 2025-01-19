@@ -5,6 +5,7 @@ canvas.width = 768 * 2;
 canvas.height = 512 * 1.5;
 
 let img_nr = 2;
+let edit_mode = false;
 
 var ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
@@ -23,13 +24,13 @@ class Grid {
         this.draw();
     }
 
-    draw() {
+    draw(color = this.color) {
         if (this.img.src) {
             ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
         } else {
             ctx.beginPath();
             ctx.rect(this.x, this.y, this.width, this.height);
-            ctx.fillStyle = this.color;
+            ctx.fillStyle = color;
             ctx.fill();
             ctx.closePath();
         }
@@ -43,54 +44,63 @@ for (let j = 0; j < 8; j++) { // Rows
     for (let i = 0; i < 12; i++) { // Columns
         let x = i * 32 * 4;
         let y = j * 32 * 4;
-        row.push(new Grid(x, y, 'white')); // Add each Grid to the current row
+        row.push(new Grid(x, y, 'lightblue')); // Add each Grid to the current row
     }
     grids.push(row); // Add the row to the grids array
 }
 
-// Draw the images
-addEventListener('mousedown', (e) => {
-    if (e.button != 0) return; // Only left
-    let x = e.clientX - canvas.getBoundingClientRect().left;
-    let y = e.clientY - canvas.getBoundingClientRect().top;
-    let grid = grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
-    console.log("Clicked on grid: ", grid.coord);
-    let current_img = `img/sheet_${img_nr}.gif`;
+// Edit mode
+function edit() {
+    edit_mode = !edit_mode;
+    if (edit_mode) {
+        canvas.style.cursor = 'crosshair';
+        addEventListener('mousedown', (e) => {
+            if (e.button != 0) return; // Only left
+            let x = e.clientX - canvas.getBoundingClientRect().left;
+            let y = e.clientY - canvas.getBoundingClientRect().top;
+            let grid = grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
+            console.log("Clicked on grid: ", grid.coord);
+            let current_img = `img/sheet_${img_nr}.gif`;
+        
+            grid.img.src = current_img;
+            grid.img.onload = () => {
+                grid.draw();
+            };
+        });
+        addEventListener('contextmenu', (e) => {
+            e.preventDefault(); // Prevent the default context menu
+            let x = e.clientX - canvas.getBoundingClientRect().left;
+            let y = e.clientY - canvas.getBoundingClientRect().top;
+            let grid = grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
+            console.log("Right-clicked on grid: ", grid.coord);
+        
+            grid.img.src = ''; 
+        
+            // Clear the canvas section and redraw the default grid
+            ctx.clearRect(grid.x, grid.y, grid.width, grid.height);
+            grid.draw(color = grid.color); // Redraw the default grid color
+        });
+        
+        // Change current img with scroll
+        addEventListener('wheel', (e) => {
+            if (e.deltaY > 0) {
+                if (img_nr == 71) return;
+                img_nr++;
+            } else {
+                if (img_nr == 2) return;
+                img_nr--;
+            }
+            // Display the current img
+            grid = grids[0][0];
+            ctx.clearRect(grid.x, grid.y, grid.width, grid.height);
+            let current_img = `img/sheet_${img_nr}.gif`;
+            grid.img.src = current_img;
+            grid.img.onload = () => {
+                grid.draw();
+            };
+        });
 
-    grid.img.src = current_img;
-    grid.img.onload = () => {
-        grid.draw();
-    };
-});
-addEventListener('contextmenu', (e) => {
-    e.preventDefault(); // Prevent the default context menu
-    let x = e.clientX - canvas.getBoundingClientRect().left;
-    let y = e.clientY - canvas.getBoundingClientRect().top;
-    let grid = grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
-    console.log("Right-clicked on grid: ", grid.coord);
-
-    grid.img.src = ''; 
-
-    // Clear the canvas section and redraw the default grid
-    ctx.clearRect(grid.x, grid.y, grid.width, grid.height);
-    grid.draw(); // Redraw the default grid color
-});
-
-// Change current img with scroll
-addEventListener('wheel', (e) => {
-    if (e.deltaY > 0) {
-        if (img_nr == 71) return;
-        img_nr++;
     } else {
-        if (img_nr == 2) return;
-        img_nr--;
+        canvas.style.cursor = 'default';
     }
-    // Display the current img
-    grid = grids[0][0];
-    ctx.clearRect(grid.x, grid.y, grid.width, grid.height);
-    let current_img = `img/sheet_${img_nr}.gif`;
-    grid.img.src = current_img;
-    grid.img.onload = () => {
-        grid.draw();
-    };
-});
+}
