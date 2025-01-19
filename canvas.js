@@ -25,16 +25,16 @@ class Grid {
         this.draw();
     }
 
-    draw(color = this.color) {
+    draw(offset = 0) {
         if (this.img.src) {
             if (this.img2.src) {
-                ctx.drawImage(this.img2, this.x, this.y, this.width, this.height);
+                ctx.drawImage(this.img2, this.x+offset, this.y, this.width, this.height);
             }
-            ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+            ctx.drawImage(this.img, this.x+offset, this.y, this.width, this.height);
         } else {
             ctx.beginPath();
-            ctx.rect(this.x, this.y, this.width, this.height);
-            ctx.fillStyle = color;
+            ctx.rect(this.x + offset, this.y, this.width, this.height);
+            ctx.fillStyle = this.color;
             ctx.fill();
             ctx.closePath();
         }
@@ -120,7 +120,6 @@ function load(texture_nr = null, offset = 0) {
 
 // Helper function to apply the loaded data to the grid
 function applyTextureData(data, offset) {
-    unload(); // Clear the canvas section and redraw the default grid
     console.log(data);
     for (let key in data) {
         let [row, col] = key.split(',').map(Number); // Parse grid coordinates
@@ -131,7 +130,39 @@ function applyTextureData(data, offset) {
             grid.img2.src = data[key].img2 || '';
             grid.collidable = data[key].collidable || false;
             grid.walkable = data[key].walkable || true;
+        } else {
+            
+            // Create a new grid if it doesn't exist
+            let x = (col + offset) * 32 * 4;
+            let y = row * 32 * 4;
+            grid = new Grid(x, y, 'lightblue');
+            grid.coord = [row, col + offset];
+            grid.img.src = data[key].img || '';
+            grid.img.onload = () => grid.draw();
+            grid.img2.src = data[key].img2 || '';
+            grid.collidable = data[key].collidable || false;
+            grid.walkable = data[key].walkable || true;
+            grids[row][col + offset] = grid;
+
+            // Get longest row
+            let longest_row = 0;
+            for (let row of grids) {
+                if (row.length > longest_row) {
+                    longest_row = row.length;
+                }
+            }
+            // Add new empty grids to rows that are shorter
+            for (let row of grids) {
+                while (row.length < longest_row) {
+                    let x = row.length * 32 * 4;
+                    let y = row[0].y;
+                    let grid = new Grid(x, y, 'lightblue');
+                    row.push(grid);
+                }
+            }
+            
         }
+        
     }
     savefile = data; // Update the global savefile variable
 }
@@ -240,3 +271,85 @@ function edit() {
         removeEventListener('wheel', () => {});
     }
 }
+
+
+class Player {
+    constructor() {
+        this.movement_direction = 0;
+        this.x = canvas.width / 2;
+        
+    }
+}
+
+class Game {
+    constructor() {
+        this.player = new Player();
+        this.animate = () => {
+            this.update();
+            requestAnimationFrame(this.animate); // Properly binds `this` to the Game instance
+        };
+
+        this.leftx = 0;
+        this.leftx = this.player.x - canvas.width / 2;
+        this.rightx = this.player.x + canvas.width / 2;
+    }
+
+    getRandomTexture() {
+        return Math.floor(Math.random() * 3) + 1;
+    }
+    infinitewalk() {
+        // Get the rightmost and leftmost grid
+        let rightmost = grids[0][grids[0].length - 1].x;
+
+        if (this.rightx >= rightmost && this.player.movement_direction == 1) {
+            load(this.getRandomTexture(), grids[0].length);
+        }
+        
+
+    }
+
+    updatePosition(update) {
+        this.player.x += update
+        this.leftx -= update;
+        this.rightx -= update;
+        
+    }
+    
+    update = () => {
+        if (this.player.movement_direction == 1) {
+            this.updatePosition(-2);
+        } else if (this.player.movement_direction == -1) {
+            this.updatePosition(2);
+        }
+        this.infinitewalk();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let row of grids) {
+            for (let grid of row) {
+                grid.draw(this.player.x - canvas.width / 2);
+            }
+        }
+    }
+
+    play() {
+        addEventListener('keydown', (e) => {
+            if (e.key == 'd') {
+                this.player.movement_direction = 1;
+            }
+            if (e.key == 'a') {
+                this.player.movement_direction =  -1;
+            }
+
+        });
+        addEventListener('keyup', (e) => {
+            if (e.key == 'd' || e.key == 'a') {
+                this.player.movement_direction = 0;
+            }
+        });
+        this.animate();
+        load(this.getRandomTexture());
+    }
+}
+
+
+let game = new Game();
+game.play();
