@@ -18,12 +18,13 @@ class Grid {
     this.height = 32 * 4;
     this.coord = [Math.floor(y / 32 / 4), Math.floor(x / 32 / 4)];
     this.color = color;
-    this.collidable = true;
-    this.walkable = true;
+    this.collidable = false;
+    this.walkable = false;
     this.img = new Image();
     this.img2 = new Image();
     this.img.src = "";
     this.img2.src = "";
+    this.outline = "none";
     this.draw();
   }
 
@@ -39,6 +40,14 @@ class Grid {
         );
       }
       ctx.drawImage(this.img, this.x + offset, this.y, this.width, this.height);
+      // Draw the outline
+      if (this.outline != "none") {
+        ctx.beginPath();
+        ctx.rect(this.x + offset, this.y, this.width, this.height);
+        ctx.strokeStyle = this.outline;
+        ctx.stroke();
+        ctx.closePath();
+      }
     } else {
       ctx.beginPath();
       ctx.rect(this.x + offset, this.y, this.width, this.height);
@@ -200,10 +209,12 @@ function edit() {
       if (e.key == "c") {
         grid.collidable = !grid.collidable;
         savefile[grid.coord].collidable = grid.collidable;
+        showCollidable();
         console.log("Collision is: " + grid.collidable);
       }
       if (e.key == "x") {
         grid.walkable = !grid.walkable;
+        showWalkable();
         savefile[grid.coord].walkable = grid.walkable;
         console.log("Walkable is: " + grid.walkable);
       }
@@ -280,6 +291,33 @@ function edit() {
     removeEventListener("mousedown", () => {});
     removeEventListener("contextmenu", () => {});
     removeEventListener("wheel", () => {});
+  }
+}
+
+function showWalkable() {
+  for (let row of grids) {
+    for (let grid of row) {
+      if (grid.walkable) {
+        grid.outline = "lightgreen";
+        grid.draw();
+      } else {
+        grid.outline = "none";
+        grid.draw();
+      }
+    }
+  }
+}
+function showCollidable() {
+  for (let row of grids) {
+    for (let grid of row) {
+      if (grid.collidable) {
+        grid.outline = "red";
+        grid.draw();
+      } else {
+        grid.outline = "none";
+        grid.draw();
+      }
+    }
   }
 }
 
