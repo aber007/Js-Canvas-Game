@@ -22,6 +22,8 @@ class Grid {
         this.walkable = true;
         this.img = new Image();
         this.img2 = new Image();
+        this.img.src = '';
+        this.img2.src = '';
         this.draw();
     }
 
@@ -72,6 +74,7 @@ function save() {
 function unload() {
     // Clear the canvas section and redraw the default grid
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    savefile = {}; // Clear the savefile object
 
 
 
@@ -197,7 +200,7 @@ function edit() {
                 savefile[grid.coord].collidable = grid.collidable;
                 console.log("Collision is: " + grid.collidable);
             }
-            if (e.key == 'w') {
+            if (e.key == 'x') {
                 grid.walkable = !grid.walkable;
                 savefile[grid.coord].walkable = grid.walkable;
                 console.log("Walkable is: " + grid.walkable);
@@ -211,11 +214,17 @@ function edit() {
             let y = e.clientY - canvas.getBoundingClientRect().top;
             let grid = grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
             let current_img = `img/tiles/sheet_${img_nr}.gif`;
-            grid.img.src = current_img;
+            
 
+            let save_img2_src = '';
+            if(grid.img.src.split('/')[3] != "index.htm") {
+                save_img2_src = "img/tiles/" + grid.img.src.split('/').pop();
+                grid.img.src = current_img;
+                console.log("Grid has tile")
+            }
             
             
-            
+            grid.img.src = current_img;
             grid.img.onload = () => {
                 grid.draw();
             };
@@ -223,7 +232,7 @@ function edit() {
             let img_name = current_img.split('/')[2];
             let save_img_src = "img/tiles/" + img_name;
             
-            savefile[grid.coord] = {color: grid.color, img: save_img_src, img2: "", collidable: grid.collidable, walkable: grid.walkable};
+            savefile[grid.coord] = {color: grid.color, img: save_img_src, img2: save_img2_src, collidable: grid.collidable, walkable: grid.walkable};
         });
         addEventListener('contextmenu', (e) => {
             e.preventDefault(); // Prevent the default context menu
@@ -317,9 +326,9 @@ class Game {
     
     update = () => {
         if (this.player.movement_direction == 1) {
-            this.updatePosition(-2);
+            this.updatePosition(-4);
         } else if (this.player.movement_direction == -1) {
-            this.updatePosition(2);
+            this.updatePosition(4);
         }
         this.infinitewalk();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -352,4 +361,3 @@ class Game {
 
 
 let game = new Game();
-game.play();
