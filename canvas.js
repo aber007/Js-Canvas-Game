@@ -324,26 +324,92 @@ function showCollidable() {
 class Player {
   constructor() {
     this.movement_direction = 0;
+
+    // X and Y position of the player camera
     this.x = canvas.width / 2;
+    this.y = 64;
+
+    this.move_speed = 4;
+    this.jump_speed = 12;
+
+    this.playerx = 0;
+    this.playery = 0;
+
+    this.vx = 0;
+    this.vy = 0;
+    this.current_grid = null;
+    this.jump_height = 0;
+    this.player_img = new Image();
+    this.player_img.src = "img/player/1.gif";
+    this.gravity = 0.5;
+
+    this.onGround = false;
+  }
+  show_player() {
+    ctx.drawImage(this.player_img, canvas.width/2+this.playerx, this.y, 15*6, 22*6);
+
+  }
+  move() {
+    // Movement logic
+    this.x += this.vx;
+    this.y += this.vy;
+  }
+  jump() {
+    // Jump logic
+    if (this.onGround) {
+      this.vy -= this.jump_speed;
+      this.onGround = false;
+    }
+    
+  }
+  applyGravity() {
+    if (!this.onGround) {
+      this.vy += this.gravity;
+    } else {
+      this.vy = 0;
+    }
+  }
+  get_current_grid() {
+    // Get the current grid the player is on
+    let grid_x = Math.floor(this.x / 32 / 4);
+    let grid_y = Math.floor(this.y / 32 / 4);
+    this.current_grid = grids[grid_y+1][grid_x];
+  }
+  check_collision() {
+    // Check for collision with the current grid
+    if (this.current_grid.walkable && this.onGround == false) {
+      this.vy = 0;
+      this.y = this.current_grid.y - 22*6;
+      this.onGround = true;
+    }
+  }
+  update() {
+    // Update the player's position
+
+    this.get_current_grid();
+    this.check_collision();
+    this.applyGravity();
+    this.move();
+    this.show_player();
   }
 }
 
 class Game {
   constructor() {
     this.player = new Player();
-    this.animate = () => {
-      this.update();
-      requestAnimationFrame(this.animate); // Properly binds `this` to the Game instance
-    };
+    this.lastFrameTime = 0; // Track the last frame timestamp
+    this.fpsInterval = 1000 / 60; // Desired time per frame (60 FPS)
 
     this.leftx = 0;
     this.leftx = this.player.x - canvas.width / 2;
     this.rightx = this.player.x + canvas.width / 2;
+    this.gravity = 0.05;
   }
 
   getRandomTexture() {
     return Math.floor(Math.random() * 3) + 1;
   }
+
   infinitewalk() {
     // Get the rightmost and leftmost grid
     let rightmost = grids[0][grids[0].length - 1].x;
@@ -354,27 +420,62 @@ class Game {
   }
 
   updatePosition(update) {
-    this.player.x += update;
+    this.player.vx = update;
+    this.player.move();
     this.leftx -= update;
     this.rightx -= update;
   }
 
   update = () => {
     if (this.player.movement_direction == 1) {
-      this.updatePosition(-4);
+      if (this.player.playerx < 0) {
+        this.player.playerx += this.player.move_speed;
+      } else {
+      this.updatePosition(-this.player.move_speed);
+      }
     } else if (this.player.movement_direction == -1) {
-      this.updatePosition(4);
+      if (this.leftx < this.player.move_speed) {
+        if (this.player.playerx <= -canvas.width / 2 + this.player.move_speed) return;
+        this.player.playerx -= this.player.move_speed;
+      } else {
+        this.updatePosition(this.player.move_speed);
+      }
+    } else {
+      this.player.vx = 0;
     }
+
     this.infinitewalk();
+
+    // Clear and redraw the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let row of grids) {
       for (let grid of row) {
         grid.draw(this.player.x - canvas.width / 2);
       }
     }
+
+    // Update the player
+    this.player.update();
+  }
+
+  animate = (timestamp) => {
+    const elapsed = timestamp - this.lastFrameTime;
+
+
+    // Run the game logic only if enough time has passed
+    if (elapsed > this.fpsInterval) {
+      this.lastFrameTime = timestamp;
+
+      // Update game logic
+      this.update();
+    }
+
+    // Request the next frame
+    requestAnimationFrame(this.animate);
   };
 
   play() {
+    // Set up controls
     addEventListener("keydown", (e) => {
       if (e.key == "d") {
         this.player.movement_direction = 1;
@@ -382,15 +483,23 @@ class Game {
       if (e.key == "a") {
         this.player.movement_direction = -1;
       }
+      if (e.key == " ") {
+        this.player.jump();
+      }
     });
     addEventListener("keyup", (e) => {
       if (e.key == "d" || e.key == "a") {
         this.player.movement_direction = 0;
       }
     });
-    this.animate();
-    load(this.getRandomTexture());
+
+    // Start the animation loop
+    this.lastFrameTime = performance.now();
+    requestAnimationFrame(this.animate);
+    load(0);
+    load(0, -12);
   }
 }
 
 let game = new Game();
+game.play();
