@@ -33,9 +33,6 @@ class Grid {
 
   draw(offset = 0) {
     if (this.img.src) {
-      if (this.back_img.src) {
-        ctx.drawImage(this.back_img, this.x + offset, this.y, this.width, this.height);
-      }
       if (this.img2.src) {
         ctx.drawImage(this.img, this.x + offset, this.y, this.width, this.height);
       }
@@ -327,12 +324,13 @@ class Player {
 
     // X and Y position of the player camera
     this.x = canvas.width / 2;
+    this.inverseX = canvas.width / 2;
     this.y = 64;
 
     this.move_speed = 4;
     this.jump_speed = 10;
 
-    this.playerx = 0;
+    this.playerOffset = 0;
     this.playery = 0;
 
     this.vx = 0;
@@ -340,18 +338,29 @@ class Player {
     this.current_grid = null;
     this.jump_height = 0;
     this.player_img = new Image();
-    this.player_img.src = "img/player/1.gif";
     this.gravity = 0.5;
+    this.img_nr = 1;
+    this.img_rotation = "";
+    this.player_img.src = `img/player/${this.img_nr}${this.img_rotation}.gif`;
 
     this.onGround = false;
+    this.gridStandingOn = null;
   }
   show_player() {
-    ctx.drawImage(this.player_img, canvas.width/2+this.playerx, this.y, 15*6, 22*6);
-
+    // Draw on load
+    ctx.drawImage(this.player_img, canvas.width/2+this.playerOffset, this.y, this.player_img.width*6, this.player_img.height*6);
+    if (this.movement_direction == 1) {
+      this.img_rotation = ""
+    } else if (this.movement_direction == -1) {
+      this.img_rotation = "-flip"
+    }
+    this.player_img.src = `img/player/${this.img_nr}${this.img_rotation}.gif`;
   }
+
   move() {
     // Movement logic
     this.x += this.vx;
+    this.inverseX -= this.vx;
     this.y += this.vy;
   }
   jump() {
@@ -365,20 +374,22 @@ class Player {
   applyGravity() {
     if (!this.onGround) {
       this.vy += this.gravity;
-    } else {
+    } else{
       this.vy = 0;
     }
   }
   get_current_grid() {
     // Get the current grid the player is on
-    let grid_x = Math.floor(((canvas.width / 2) +this.playerx) / 32 / 4);
-    let grid_y = Math.floor(this.playery / 32 / 4);
-    console.log(grid_x, grid_y);
+    let grid_x = Math.floor(this.inverseX / 32 / 4);
+    let grid_y = Math.floor(this.y / 32 / 4);
     this.current_grid = grids[grid_y+1][grid_x];
   }
   check_collision() {
     // Check for collision with the current grid
+    console.log(this.current_grid.coord);
     if (this.current_grid.walkable && this.onGround == false) {
+      console.log("Current grid is walkable");
+
       this.vy = 0;
       this.y = this.current_grid.y - 22*6;
       this.onGround = true;
@@ -400,6 +411,7 @@ class Game {
     this.player = new Player();
     this.lastFrameTime = 0; // Track the last frame timestamp
     this.fpsInterval = 1000 / 60; // Desired time per frame (60 FPS)
+    this.currentFrame = 0;
 
     this.leftx = 0;
     this.leftx = this.player.x - canvas.width / 2;
@@ -409,11 +421,12 @@ class Game {
   }
 
   getRandomTexture() {
-    return Math.floor(Math.random() * 0) + 0;
+    return Math.floor(Math.random() * 1) + 1;
   }
 
   infinitewalk() {
     // Get the rightmost and leftmost grid
+  
     let rightmost = grids[0][grids[0].length - 1].x;
 
     if (this.rightx >= rightmost && this.player.movement_direction == 1) {
@@ -421,25 +434,47 @@ class Game {
     }
   }
 
+  doAnimations() {
+    // Do animations
+    if (this.player.movement_direction != 0 && this.player.onGround) {
+      this.player.img_nr += 1;
+      if (this.player.img_nr > 4) {
+        this.player.img_nr = 1;
+      }
+    }
+
+  }
+
   updatePosition(update) {
     this.player.vx = update;
     this.player.move();
-    this.leftx -= update;
-    this.rightx -= update;
+    this.leftx -= update * 2;
+
+    this.rightx -= update * 2;
   }
 
   updatePlayerSpeed() {
+    if (this.pressed_keys.d) {
+      this.player.movement_direction = 1;
+    } else if (this.pressed_keys.a) {
+      this.player.movement_direction = -1;
+    } else if (!this.pressed_keys.d && !this.pressed_keys.a) {
+      this.player.movement_direction = 0;
+    }
+
+
+
     if (this.player.movement_direction == 1) {
-      if (this.player.playerx < 0) {
-        this.player.playerx += 2*this.player.move_speed;
+      if (this.player.playerOffset < 0) {
+        this.player.playerOffset += this.player.move_speed;
       } else {
       this.updatePosition(-this.player.move_speed);
       }
     } else if (this.player.movement_direction == -1) {
       if (this.leftx < this.player.move_speed) {
-        if (this.player.playerx <= -canvas.width / 2 + this.player.move_speed) return;
+        if (this.player.playerOffset <= -canvas.width / 2 + this.player.move_speed) return;
         this.player.vx = 0;
-        this.player.playerx -= 2*this.player.move_speed;
+        this.player.playerOffset -= this.player.move_speed;
       } else {
         this.updatePosition(this.player.move_speed);
       }
@@ -456,7 +491,7 @@ class Game {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let row of grids) {
       for (let grid of row) {
-        grid.draw(this.player.x - canvas.width / 2);
+        grid.draw(this.player.x - (canvas.width / 2));
       }
     }
 
@@ -471,6 +506,11 @@ class Game {
     // Run the game logic only if enough time has passed
     if (elapsed > this.fpsInterval) {
       this.lastFrameTime = timestamp;
+      this.currentFrame++;
+      if (this.currentFrame > 20) { // 20 frames per animation
+        this.currentFrame = 0;
+        this.doAnimations();
+      }
 
       // Update game logic
       this.update();
@@ -485,11 +525,9 @@ class Game {
     addEventListener("keydown", (e) => {
       if (e.key == "d") {
         this.pressed_keys.d = true;
-        this.player.movement_direction = 1;
       }
       if (e.key == "a") {
         this.pressed_keys.a = true;
-        this.player.movement_direction = -1;
       }
       if (e.key == " ") {
         this.pressed_keys.space = true;
@@ -499,19 +537,9 @@ class Game {
     addEventListener("keyup", (e) => {
       if (e.key == "d") {
         this.pressed_keys.d = false;
-        if (this.pressed_keys.a) {
-          this.player.movement_direction = -1;
-        } else {
-          this.player.movement_direction = 0;
-        }
       }
       if (e.key == "a") {
         this.pressed_keys.a = false;
-        if (this.pressed_keys.d) {
-          this.player.movement_direction = 1;
-        } else {
-          this.player.movement_direction = 0;
-        }
       }
       if (e.key == " ") {
         this.pressed_keys.space = false;
