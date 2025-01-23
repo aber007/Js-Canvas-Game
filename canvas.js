@@ -22,22 +22,22 @@ class Grid {
     this.walkable = false;
     this.img = new Image();
     this.img2 = new Image();
+    this.back_img = new Image();
     this.img.src = "";
     this.img2.src = "";
+    this.back_img.src = "";
+
     this.outline = "none";
     this.draw();
   }
 
   draw(offset = 0) {
     if (this.img.src) {
+      if (this.back_img.src) {
+        ctx.drawImage(this.back_img, this.x + offset, this.y, this.width, this.height);
+      }
       if (this.img2.src) {
-        ctx.drawImage(
-          this.img2,
-          this.x + offset,
-          this.y,
-          this.width,
-          this.height
-        );
+        ctx.drawImage(this.img, this.x + offset, this.y, this.width, this.height);
       }
       ctx.drawImage(this.img, this.x + offset, this.y, this.width, this.height);
       // Draw the outline
@@ -330,7 +330,7 @@ class Player {
     this.y = 64;
 
     this.move_speed = 4;
-    this.jump_speed = 12;
+    this.jump_speed = 10;
 
     this.playerx = 0;
     this.playery = 0;
@@ -371,8 +371,9 @@ class Player {
   }
   get_current_grid() {
     // Get the current grid the player is on
-    let grid_x = Math.floor(this.x / 32 / 4);
-    let grid_y = Math.floor(this.y / 32 / 4);
+    let grid_x = Math.floor(((canvas.width / 2) +this.playerx) / 32 / 4);
+    let grid_y = Math.floor(this.playery / 32 / 4);
+    console.log(grid_x, grid_y);
     this.current_grid = grids[grid_y+1][grid_x];
   }
   check_collision() {
@@ -404,10 +405,11 @@ class Game {
     this.leftx = this.player.x - canvas.width / 2;
     this.rightx = this.player.x + canvas.width / 2;
     this.gravity = 0.05;
+    this.pressed_keys = {a: false, d: false, space: false};
   }
 
   getRandomTexture() {
-    return Math.floor(Math.random() * 3) + 1;
+    return Math.floor(Math.random() * 0) + 0;
   }
 
   infinitewalk() {
@@ -426,24 +428,28 @@ class Game {
     this.rightx -= update;
   }
 
-  update = () => {
+  updatePlayerSpeed() {
     if (this.player.movement_direction == 1) {
       if (this.player.playerx < 0) {
-        this.player.playerx += this.player.move_speed;
+        this.player.playerx += 2*this.player.move_speed;
       } else {
       this.updatePosition(-this.player.move_speed);
       }
     } else if (this.player.movement_direction == -1) {
       if (this.leftx < this.player.move_speed) {
         if (this.player.playerx <= -canvas.width / 2 + this.player.move_speed) return;
-        this.player.playerx -= this.player.move_speed;
+        this.player.vx = 0;
+        this.player.playerx -= 2*this.player.move_speed;
       } else {
         this.updatePosition(this.player.move_speed);
       }
     } else {
       this.player.vx = 0;
     }
+  }
 
+  update = () => {
+    this.updatePlayerSpeed();
     this.infinitewalk();
 
     // Clear and redraw the canvas
@@ -478,18 +484,37 @@ class Game {
     // Set up controls
     addEventListener("keydown", (e) => {
       if (e.key == "d") {
+        this.pressed_keys.d = true;
         this.player.movement_direction = 1;
       }
       if (e.key == "a") {
+        this.pressed_keys.a = true;
         this.player.movement_direction = -1;
       }
       if (e.key == " ") {
+        this.pressed_keys.space = true;
         this.player.jump();
       }
     });
     addEventListener("keyup", (e) => {
-      if (e.key == "d" || e.key == "a") {
-        this.player.movement_direction = 0;
+      if (e.key == "d") {
+        this.pressed_keys.d = false;
+        if (this.pressed_keys.a) {
+          this.player.movement_direction = -1;
+        } else {
+          this.player.movement_direction = 0;
+        }
+      }
+      if (e.key == "a") {
+        this.pressed_keys.a = false;
+        if (this.pressed_keys.d) {
+          this.player.movement_direction = 1;
+        } else {
+          this.player.movement_direction = 0;
+        }
+      }
+      if (e.key == " ") {
+        this.pressed_keys.space = false;
       }
     });
 
@@ -497,9 +522,7 @@ class Game {
     this.lastFrameTime = performance.now();
     requestAnimationFrame(this.animate);
     load(0);
-    load(0, -12);
   }
 }
 
 let game = new Game();
-game.play();
