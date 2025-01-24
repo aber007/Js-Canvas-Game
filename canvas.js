@@ -14,6 +14,7 @@ class Grid {
   constructor(x, y, color) {
     this.x = x;
     this.y = y;
+    this.relativex = x;
     this.width = 32 * 4;
     this.height = 32 * 4;
     this.coord = [Math.floor(y / 32 / 4), Math.floor(x / 32 / 4)];
@@ -139,6 +140,8 @@ function applyTextureData(data, offset) {
     let [row, col] = key.split(",").map(Number); // Parse grid coordinates
     let grid = grids[row][col + offset];
     if (grid) {
+      let x = (col + offset) * 32 * 4;
+      let y = row * 32 * 4;
       grid.img.src = data[key].img || "";
       grid.img.onload = () => grid.draw();
       grid.img2.src = data[key].img2 || "";
@@ -325,10 +328,10 @@ class Player {
     // X and Y position of the player camera
     this.x = canvas.width / 2;
     this.inverseX = canvas.width / 2;
-    this.y = 64;
+    this.y = canvas.height / 2;
 
-    this.move_speed = 4;
-    this.jump_speed = 10;
+    this.move_speed = 5;
+    this.jump_speed = 15;
 
     this.playerOffset = 0;
     this.playery = 0;
@@ -344,7 +347,8 @@ class Player {
     this.player_img.src = `img/player/${this.img_nr}${this.img_rotation}.gif`;
 
     this.onGround = false;
-    this.gridStandingOn = null;
+    this.leftCollision = false;
+    this.rightCollision = false;
   }
   show_player() {
     // Draw on load
@@ -352,13 +356,18 @@ class Player {
     if (this.movement_direction == 1) {
       this.img_rotation = ""
     } else if (this.movement_direction == -1) {
-      this.img_rotation = "-flip"
+      this.img_rotation = "-flip" // If direction is left
     }
     this.player_img.src = `img/player/${this.img_nr}${this.img_rotation}.gif`;
   }
 
   move() {
     // Update horizontal position
+    if(this.leftCollision && this.vx < 0) {
+      this.vx = 0;
+    } else if(this.rightCollision && this.vx > 0) {
+      this.vx = 0;
+    }
     this.x += this.vx;
     this.inverseX -= this.vx;
   
@@ -371,6 +380,8 @@ class Player {
     if (this.onGround) {
       this.vy = -this.jump_speed;
       this.onGround = false;
+      this.leftCollision = false;
+      this.rightCollision = false;
     }
     
   }
@@ -387,19 +398,52 @@ class Player {
     // Get the current grid the player is on
     let grid_x = Math.floor(this.inverseX / 32 / 4);
     let grid_y = Math.floor(this.y / 32 / 4);
-    this.current_grid = grids[grid_y+1][grid_x];
-    this.gridStandingOn = grids[grid_y][grid_x];
+    try {
+      this.current_grid = grids[grid_y+1][grid_x];
+      this.nextGrid = grids[grid_y+1][grid_x+1];
+    } catch (e) {
+      // Do nothing. 
+    }
+    // Get the grids position from the left side of the canvas
   }
   check_collision() {
-    // Check for walkable with the current grid
+    if (this.current_grid) {
+      this.current_grid.relativex = this.current_grid.x - game.leftx
+      // Handle walkable tiles (platform-like behavior)
+      if (
+        this.current_grid.walkable &&
+        this.vy > 0// Falling downward
+      ) {
+        this.vy = 0;
+        this.y = this.current_grid.y - this.player_img.height * 6;
+        this.onGround = true;
+        return; // Exit early since we landed
+      }
   
-    if (this.current_grid.walkable && this.vy > 0) {
+      // Handle collidable tiles (full collision)
+      if (this.nextGrid.collidable) {
+        //Left collision
+        if (this.inverseX + this.player_img.width > this.nextGrid.x - (32 * 2) ) {
+          this.vx = 0;
+          this.leftCollision = true;
 
-      this.vy = 0;
-      this.y = this.current_grid.y - 22*6;
-      this.onGround = true;
+          game.updatePosition(this.move_speed);
+        }
+      }
+      if (this.current_grid.collidable) {
+        //Right collision
+        if (this.inverseX < this.current_grid.x + this.current_grid.width) {
+          this.vx = 0;
+          this.rightCollision = true;
+
+          game.updatePosition(-this.move_speed);
+        }
+      }
+
     }
   }
+  
+  
 
   update() {
     // Update the player's position
@@ -408,7 +452,6 @@ class Player {
     this.applyGravity();
     this.move();
     this.show_player();
-    console.log(this.y);
   }
 }
 
@@ -428,7 +471,7 @@ class Game {
   }
 
   getRandomTexture() {
-    return Math.floor(Math.random() * 1) + 1;
+    return Math.floor(Math.random() * 2) + 1;
   }
 
   infinitewalk() {
@@ -453,8 +496,12 @@ class Game {
   }
 
   updatePosition(update) {
+    if(update < 0 && this.rightCollision) {
+      update = 0;
+    } else if(update > 0 && this.leftCollision) {
+      update = 0;
+    }
     this.player.vx = update;
-    this.player.move();
     this.leftx -= update * 2;
     this.rightx -= update * 2;
   }
@@ -531,9 +578,11 @@ class Game {
     addEventListener("keydown", (e) => {
       if (e.key == "d") {
         this.pressed_keys.d = true;
+        this.player.rightCollision = false;
       }
       if (e.key == "a") {
         this.pressed_keys.a = true;
+        this.player.leftCollision = false;
       }
       if (e.key == " ") {
         this.pressed_keys.space = true;
