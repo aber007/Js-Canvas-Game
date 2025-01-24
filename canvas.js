@@ -34,7 +34,7 @@ class Grid {
   draw(offset = 0) {
     if (this.img.src) {
       if (this.img2.src) {
-        ctx.drawImage(this.img, this.x + offset, this.y, this.width, this.height);
+        ctx.drawImage(this.img2, this.x + offset, this.y, this.width, this.height);
       }
       ctx.drawImage(this.img, this.x + offset, this.y, this.width, this.height);
       // Draw the outline
@@ -358,15 +358,18 @@ class Player {
   }
 
   move() {
-    // Movement logic
+    // Update horizontal position
     this.x += this.vx;
     this.inverseX -= this.vx;
+  
+    // Update vertical position
     this.y += this.vy;
   }
+  
   jump() {
     // Jump logic
     if (this.onGround) {
-      this.vy -= this.jump_speed;
+      this.vy = -this.jump_speed;
       this.onGround = false;
     }
     
@@ -374,35 +377,38 @@ class Player {
   applyGravity() {
     if (!this.onGround) {
       this.vy += this.gravity;
-    } else{
-      this.vy = 0;
+    } else {
+      this.vy = 0; // Reset vertical velocity when grounded
     }
+
+  
   }
   get_current_grid() {
     // Get the current grid the player is on
     let grid_x = Math.floor(this.inverseX / 32 / 4);
     let grid_y = Math.floor(this.y / 32 / 4);
     this.current_grid = grids[grid_y+1][grid_x];
+    this.gridStandingOn = grids[grid_y][grid_x];
   }
   check_collision() {
-    // Check for collision with the current grid
-    console.log(this.current_grid.coord);
-    if (this.current_grid.walkable && this.onGround == false) {
-      console.log("Current grid is walkable");
+    // Check for walkable with the current grid
+  
+    if (this.current_grid.walkable && this.vy > 0) {
 
       this.vy = 0;
       this.y = this.current_grid.y - 22*6;
       this.onGround = true;
     }
   }
+
   update() {
     // Update the player's position
-
     this.get_current_grid();
     this.check_collision();
     this.applyGravity();
     this.move();
     this.show_player();
+    console.log(this.y);
   }
 }
 
@@ -418,6 +424,7 @@ class Game {
     this.rightx = this.player.x + canvas.width / 2;
     this.gravity = 0.05;
     this.pressed_keys = {a: false, d: false, space: false};
+
   }
 
   getRandomTexture() {
@@ -449,7 +456,6 @@ class Game {
     this.player.vx = update;
     this.player.move();
     this.leftx -= update * 2;
-
     this.rightx -= update * 2;
   }
 
@@ -554,3 +560,4 @@ class Game {
 }
 
 let game = new Game();
+game.play();
