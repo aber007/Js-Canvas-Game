@@ -34,7 +34,7 @@ class Grid {
 
   draw(offset = 0) {
     if (this.img.src) {
-      if (this.img2.src) {
+      if (this.img2.src != "") {
         ctx.drawImage(
           this.img2,
           this.x + offset,
@@ -53,11 +53,7 @@ class Grid {
         ctx.closePath();
       }
     } else {
-      ctx.beginPath();
-      ctx.rect(this.x + offset, this.y, this.width, this.height);
-      ctx.fillStyle = this.color;
-      ctx.fill();
-      ctx.closePath();
+      // Do northing
     }
   }
 }
@@ -183,7 +179,7 @@ function applyTextureData(data, offset) {
           // Chance to add a block at that row
         }
         if (Math.random() < 0.1) {
-          game.blocks.push(new Block(x, canvas.height/2, 32, 32));
+          game.blocks.push(new Block(x + 64, canvas.height / 2, 32, 32));
         }
       }
     }
@@ -361,6 +357,7 @@ class Player {
     this.onGround = false;
     this.leftCollision = false;
     this.rightCollision = false;
+    this.lastgrid = null;
   }
   show_player(keepLastFrame = false) {
     // Draw on load
@@ -368,8 +365,8 @@ class Player {
       this.player_img,
       canvas.width / 2 + this.playerOffset,
       this.y,
-      this.player_img.width * 6,
-      this.player_img.height * 6
+      this.player_img.width * game.img_scale,
+      this.player_img.height * game.img_scale
     );
     if (this.movement_direction == 1) {
       this.img_rotation = "";
@@ -416,6 +413,7 @@ class Player {
     try {
       this.current_grid = grids[grid_y + 1][grid_x];
       this.nextGrid = grids[grid_y + 1][grid_x + 1];
+      this.gridUnder = grids[grid_y + 2][grid_x];
     } catch (e) {
       // Do nothing.
     }
@@ -426,9 +424,9 @@ class Player {
     for (const block of game.blocks) {
       if (
         this.x < block.x + block.width &&
-        this.x + this.player_img.width * 6 > block.x &&
+        this.x + this.player_img.width * game.img_scale > block.x &&
         this.y < block.y + block.height &&
-        this.y + this.player_img.height * 6 > block.y
+        this.y + this.player_img.height * game.img_scale > block.y
       ) {
         console.log("Colliding with block");
       }
@@ -438,36 +436,43 @@ class Player {
   check_collision() {
     if (this.current_grid) {
       // Handle walkable tiles (platform-like behavior)
+      const nextGridOffset = Math.abs(this.nextGrid.x - this.inverseX);
       if (
-        this.current_grid.walkable &&
-        this.vy > 0 // Falling downward
+        (this.current_grid.walkable && this.vy > 0) || // Falling downward
+        (this.vy > 0 &&
+          this.nextGrid.walkable &&
+          nextGridOffset < this.player_img.width * game.img_scale)
       ) {
         this.vy = 0;
-        this.y = this.current_grid.y - this.player_img.height * 6;
+        this.y = this.current_grid.y - this.player_img.height * game.img_scale;
         this.onGround = true;
+        this.leftCollision = false;
+        this.rightCollision = false;
         return true; // Exit early since we landed
+      }
+      if (
+        !this.gridUnder.walkable &&
+        nextGridOffset > this.player_img.width * game.img_scale
+      ) {
+        this.onGround = false;
       }
 
       // Handle collidable tiles (full collision)
-      if (this.nextGrid.collidable) {
+      if (this.nextGrid.collidable && !this.leftCollision) {
         //Left collision
         if (this.inverseX + this.player_img.width > this.nextGrid.x - 32 * 2) {
           this.vx = 0;
           this.leftCollision = true;
-
-          game.updatePosition(this.move_speed);
         }
         return true;
       }
-      if (this.current_grid.collidable) {
+      if (this.current_grid.collidable && !this.rightCollision) {
         //Right collision
         if (this.inverseX < this.current_grid.x + this.current_grid.width) {
           this.vx = 0;
           this.rightCollision = true;
-
-          game.updatePosition(-this.move_speed);
         }
-        return;
+        return true;
       }
     }
   }
@@ -475,7 +480,7 @@ class Player {
   update() {
     // Update the player's position
     this.get_current_grid();
-    this.check_collision();
+    const yOffset = this.check_collision();
     this.applyGravity();
     this.move();
     this.show_player();
@@ -494,7 +499,7 @@ class Block {
     this.vy = 0;
     this.elasticity = elasticity;
     this.playerNo = playerNo;
-    this.color = "rgba(0, 128, 255, 0.8)";
+    this.color = "rgb(0, 128, 255)";
     this.mass = width * height;
     this.angle = 0;
     this.angularVelocity = 0;
@@ -547,7 +552,10 @@ class Block {
     this.x += this.vx;
 
     // Collide with grid
-    if (this.x < game.playerinverseX - canvas.width / 2 || this.x > game.player.inverseX + canvas.width / 2) {
+    if (
+      this.x < game.playerinverseX - canvas.width / 2 ||
+      this.x > game.player.inverseX + canvas.width / 2
+    ) {
       return;
     } else {
       this.vy += game.gravity;
@@ -597,6 +605,8 @@ class Block {
 
 class Game {
   constructor() {
+    this.towerDefense = false;
+
     this.player = new Player();
     this.lastFrameTime = 0; // Track the last frame timestamp
     this.fpsInterval = 1000 / 60; // Desired time per frame (60 FPS)
@@ -614,8 +624,11 @@ class Game {
     this.airResistance = 0.99;
     this.ropeElasticity = 0.1;
 
+    // Img settints
+    this.img_scale = 6;
+
     // Game state
-    this.blocks = [];
+    this.blocks = [new Block(375, 0, 50, 50, this)];
     this.mouse = { x: 0, y: 0, pressed: false };
   }
 
@@ -644,14 +657,14 @@ class Game {
   }
 
   updatePosition(update) {
-    if (update < 0 && this.rightCollision) {
+    if (update > 0 && this.player.rightCollision) {
       update = 0;
-    } else if (update > 0 && this.leftCollision) {
+    } else if (update < 0 && this.player.leftCollision) {
       update = 0;
     }
     this.player.vx = update;
-    this.leftx -= update * 2;
-    this.rightx -= update * 2;
+    this.leftx -= update;
+    this.rightx -= update;
   }
 
   updatePlayerSpeed() {
@@ -713,7 +726,7 @@ class Game {
     this.player.update();
   };
 
-  animate = (timestamp) => {
+  animateCollect = (timestamp) => {
     const elapsed = timestamp - this.lastFrameTime;
 
     // Run the game logic only if enough time has passed
@@ -731,11 +744,28 @@ class Game {
     }
 
     // Request the next frame
-    requestAnimationFrame(this.animate);
+    if (this.towerDefense) {
+      requestAnimationFrame(this.animateCannon);
+    } else {
+      requestAnimationFrame(this.animateCollect);
+    }
   };
 
-  play() {
-    // Set up controls
+  playCannon() {
+    unload();
+    this.towerDefense = true;
+    // Plays the tower defence game
+    addEventListener("mousemove", (event) => {
+      this.mouse.x = event.clientX;
+      this.mouse.y = event.clientY;
+    });
+    load(-1);
+  }
+
+  playCollect() {
+    unload();
+    this.towerDefense = false;
+    // Plays the collection game
     addEventListener("keydown", (e) => {
       if (e.key == "d") {
         this.pressed_keys.d = true;
@@ -764,7 +794,7 @@ class Game {
 
     // Start the animation loop
     this.lastFrameTime = performance.now();
-    requestAnimationFrame(this.animate);
+    requestAnimationFrame(this.animateCollect);
     load(0);
   }
 }
@@ -787,13 +817,13 @@ for (let i = 2; i < 72; i++) {
   imagePaths.push(`img/tiles/sheet_${i}.gif`);
 }
 
-const game = new Game(); // Initialize your game instance
+const game = new Game();
 
 // Preload images and start the game
 preloadImages(imagePaths)
   .then(() => {
     console.log("All images preloaded successfully!");
-    game.play(); // Start the game loop
+    game.playCollect(); // Start the game loop
   })
   .catch((error) => {
     console.error(error);
