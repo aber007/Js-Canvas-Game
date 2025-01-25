@@ -43,7 +43,23 @@ class Grid {
           this.height
         );
       }
-      ctx.drawImage(this.img, this.x + offset, this.y, this.width, this.height);
+      if (this.img.src.split(".").pop() == "png") {
+        ctx.drawImage(
+          this.img,
+          this.x + offset + 32 * 4,
+          canvas.height / 2 + canvas.height / 6,
+          this.width * 2,
+          this.height * 3.5
+        );
+      } else {
+        ctx.drawImage(
+          this.img,
+          this.x + offset,
+          this.y,
+          this.width,
+          this.height
+        );
+      }
       // Draw the outline
       if (this.outline != "none") {
         ctx.beginPath();
@@ -92,6 +108,19 @@ function unload() {
   // Clear the canvas section and redraw the default grid
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   savefile = {}; // Clear the savefile object
+  // Clear the grids array
+  grids = [];
+  for (let j = 0; j < 8; j++) {
+    // Rows
+    let row = []; // Create a new row
+    for (let i = 0; i < 12; i++) {
+      // Columns
+      let x = i * 32 * 4;
+      let y = j * 32 * 4;
+      row.push(new Grid(x, y, "lightblue")); // Add each Grid to the current row
+    }
+    grids.push(row); // Add the row to the grids array
+  }
 }
 
 function load(texture_nr = null, offset = 0) {
@@ -603,11 +632,97 @@ class Block {
   }
 }
 
+class CannonBall extends Block {
+  constructor(x, y, width, height, angle) {
+    super(x, y, width, height);
+    this.x = x;
+    this.y = y;
+    this.angle = angle;
+    this.vx = game.cannon.ballSpeed;
+    if (game.cannon.ballSpeed * angle < -25) {
+      this.vy = -25;
+    } else if (game.cannon.ballSpeed * angle > 25) {
+      this.vy = 25;
+    } else {
+      this.vy = game.cannon.ballSpeed * angle;
+    }
+    this.color = "black";
+  }
+  draw(ctx) {
+    // Draw the cannon ball as a circle
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.closePath();
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += game.gravity;
+    this.vy *= game.airResistance;
+    this.vx *= game.airResistance;
+    this.draw(ctx);
+  }
+}
+
+class Cannon {
+  constructor() {
+    this.x = 32 * 8;
+    this.y = canvas.height / 2;
+    this.cannonBalls = [];
+    this.ballSpeed = 25;
+    this.ballSize = 20;
+  }
+
+  draw(ctx, mouse) {
+    // Draw the cannon
+    ctx.save();
+    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+    ctx.rotate(this.angle);
+    ctx.fillStyle = "black";
+    ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+    ctx.restore();
+
+    // Draw the cannon ball
+    if (this.cannonBall) {
+      this.cannonBall.draw(ctx);
+    }
+  }
+  shoot(special) {
+    // Shoot the cannon
+    console.log("Shooting cannon!");
+
+    const cannonBallAngle = (game.mouse.y - this.y) / (game.mouse.x - this.x);
+    const size = special ? this.ballSize * 4 : this.ballSize;
+    
+
+    this.cannonBalls.push(
+      new CannonBall(
+        this.x,
+        this.y,
+        size,
+        size,
+        cannonBallAngle,
+        this
+      )
+    );
+  }
+
+  update() {
+    // Update the cannon ball
+    for (let ball of this.cannonBalls) {
+      ball.update();
+    }
+  }
+}
+
 class Game {
   constructor() {
     this.towerDefense = false;
 
     this.player = new Player();
+    this.cannon = new Cannon();
     this.lastFrameTime = 0; // Track the last frame timestamp
     this.fpsInterval = 1000 / 60; // Desired time per frame (60 FPS)
     this.currentFrame = 0;
@@ -699,7 +814,7 @@ class Game {
     }
   }
 
-  update = () => {
+  updateCollect = () => {
     this.updatePlayerSpeed();
     this.infinitewalk();
 
@@ -726,6 +841,49 @@ class Game {
     this.player.update();
   };
 
+  updateCannon = () => {
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let row of grids) {
+      for (let grid of row) {
+        grid.draw(this.player.x - canvas.width / 2);
+      }
+    }
+
+    this.cannon.update();
+
+    // Update and draw blocks
+    for (const block of this.blocks) {
+      block.update();
+      block.draw(ctx, this.mouse);
+      block.grab(this.mouse);
+    }
+  };
+
+  animateCannon = (timestamp) => {
+    // Run the game logic only if enough time has passed
+    const elapsed = timestamp - this.lastFrameTime;
+    if (elapsed > this.fpsInterval) {
+      this.lastFrameTime = timestamp;
+      this.currentFrame++;
+      if (this.currentFrame > 20) {
+        // 20 frames per animation
+        this.currentFrame = 0;
+        this.doAnimations();
+      }
+
+      // Update game logic
+      this.updateCannon();
+    }
+
+    // Request the next frame
+    if (this.towerDefense) {
+      requestAnimationFrame(this.animateCannon);
+    } else {
+      requestAnimationFrame(this.animateCollect);
+    }
+  };
+
   animateCollect = (timestamp) => {
     const elapsed = timestamp - this.lastFrameTime;
 
@@ -740,7 +898,7 @@ class Game {
       }
 
       // Update game logic
-      this.update();
+      this.updateCollect();
     }
 
     // Request the next frame
@@ -751,13 +909,31 @@ class Game {
     }
   };
 
+  switchGame() {
+    if (this.towerDefense) {
+      this.playCollect();
+    } else {
+      this.playCannon();
+    }
+  }
+
   playCannon() {
     unload();
+    this.blocks = [];
     this.towerDefense = true;
     // Plays the tower defence game
     addEventListener("mousemove", (event) => {
       this.mouse.x = event.clientX;
       this.mouse.y = event.clientY;
+    });
+    addEventListener("mousedown", (e) => {
+      if (e.button == 0) {
+        this.cannon.shoot();
+      }
+    });
+    addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      this.cannon.shoot(true);
     });
     load(-1);
   }
@@ -778,6 +954,9 @@ class Game {
       if (e.key == " ") {
         this.pressed_keys.space = true;
         this.player.jump();
+      }
+      if (e.key == "e") {
+        this.switchGame();
       }
     });
     addEventListener("keyup", (e) => {
