@@ -35,7 +35,13 @@ class Grid {
   draw(offset = 0) {
     if (this.img.src) {
       if (this.img2.src) {
-        ctx.drawImage(this.img2, this.x + offset, this.y, this.width, this.height);
+        ctx.drawImage(
+          this.img2,
+          this.x + offset,
+          this.y,
+          this.width,
+          this.height
+        );
       }
       ctx.drawImage(this.img, this.x + offset, this.y, this.width, this.height);
       // Draw the outline
@@ -174,6 +180,10 @@ function applyTextureData(data, offset) {
           let y = row[0].y;
           let grid = new Grid(x, y, "lightblue");
           row.push(grid);
+          // Chance to add a block at that row
+        }
+        if (Math.random() < 0.1) {
+          game.blocks.push(new Block(x, canvas.height/2, 32, 32));
         }
       }
     }
@@ -330,6 +340,8 @@ class Player {
     this.inverseX = canvas.width / 2;
     this.y = canvas.height / 2;
 
+    this.money = 0;
+
     this.move_speed = 6;
     this.jump_speed = 13;
 
@@ -352,29 +364,35 @@ class Player {
   }
   show_player(keepLastFrame = false) {
     // Draw on load
-    ctx.drawImage(this.player_img, canvas.width/2+this.playerOffset, this.y, this.player_img.width*6, this.player_img.height*6);
+    ctx.drawImage(
+      this.player_img,
+      canvas.width / 2 + this.playerOffset,
+      this.y,
+      this.player_img.width * 6,
+      this.player_img.height * 6
+    );
     if (this.movement_direction == 1) {
-      this.img_rotation = ""
+      this.img_rotation = "";
     } else if (this.movement_direction == -1) {
-      this.img_rotation = "-flip" // If direction is left
+      this.img_rotation = "-flip"; // If direction is left
     }
     this.player_img.src = `img/player/${this.img_nr}${this.img_rotation}.gif`;
   }
 
   move() {
     // Update horizontal position
-    if(this.leftCollision && this.vx < 0) {
+    if (this.leftCollision && this.vx < 0) {
       this.vx = 0;
-    } else if(this.rightCollision && this.vx > 0) {
+    } else if (this.rightCollision && this.vx > 0) {
       this.vx = 0;
     }
     this.x += this.vx;
     this.inverseX -= this.vx;
-  
+
     // Update vertical position
     this.y += this.vy;
   }
-  
+
   jump() {
     // Jump logic
     if (this.onGround) {
@@ -383,7 +401,6 @@ class Player {
       this.leftCollision = false;
       this.rightCollision = false;
     }
-    
   }
   applyGravity() {
     if (!this.onGround) {
@@ -391,39 +408,50 @@ class Player {
     } else {
       this.vy = 0; // Reset vertical velocity when grounded
     }
-
-  
   }
   get_current_grid() {
     // Get the current grid the player is on
     let grid_x = Math.floor(this.inverseX / 32 / 4);
     let grid_y = Math.floor(this.y / 32 / 4);
     try {
-      this.current_grid = grids[grid_y+1][grid_x];
-      this.nextGrid = grids[grid_y+1][grid_x+1];
+      this.current_grid = grids[grid_y + 1][grid_x];
+      this.nextGrid = grids[grid_y + 1][grid_x + 1];
     } catch (e) {
-      // Do nothing. 
+      // Do nothing.
     }
     // Get the grids position from the left side of the canvas
   }
+  checkCollisionWithBlock() {
+    // Check if the player is colliding with block
+    for (const block of game.blocks) {
+      if (
+        this.x < block.x + block.width &&
+        this.x + this.player_img.width * 6 > block.x &&
+        this.y < block.y + block.height &&
+        this.y + this.player_img.height * 6 > block.y
+      ) {
+        console.log("Colliding with block");
+      }
+    }
+  }
+
   check_collision() {
     if (this.current_grid) {
       // Handle walkable tiles (platform-like behavior)
       if (
         this.current_grid.walkable &&
-        this.vy > 0// Falling downward
+        this.vy > 0 // Falling downward
       ) {
-        console.log(this.current_grid);
         this.vy = 0;
         this.y = this.current_grid.y - this.player_img.height * 6;
         this.onGround = true;
         return true; // Exit early since we landed
       }
-  
+
       // Handle collidable tiles (full collision)
       if (this.nextGrid.collidable) {
         //Left collision
-        if (this.inverseX + this.player_img.width > this.nextGrid.x - (32 * 2) ) {
+        if (this.inverseX + this.player_img.width > this.nextGrid.x - 32 * 2) {
           this.vx = 0;
           this.leftCollision = true;
 
@@ -441,11 +469,8 @@ class Player {
         }
         return;
       }
-
     }
   }
-  
-  
 
   update() {
     // Update the player's position
@@ -454,6 +479,119 @@ class Player {
     this.applyGravity();
     this.move();
     this.show_player();
+  }
+}
+
+class Block {
+  constructor(x, y, width, height, game, elasticity = 0.8, playerNo = 0) {
+    game = game;
+    this.initialX = x;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.vx = 0;
+    this.vy = 0;
+    this.elasticity = elasticity;
+    this.playerNo = playerNo;
+    this.color = "rgba(0, 128, 255, 0.8)";
+    this.mass = width * height;
+    this.angle = 0;
+    this.angularVelocity = 0;
+    this.line = false;
+    this.offset = 0;
+    this.current_grid = null;
+    this.nextGrid = null;
+  }
+
+  draw(ctx, mouse) {
+    if (this.line) {
+      // Draw the rope
+      ctx.beginPath();
+      ctx.moveTo(this.x + this.width / 2, this.y + this.height / 2);
+      ctx.lineTo(mouse.x, mouse.y);
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // Draw the block
+    ctx.save();
+    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+    ctx.rotate(this.angle);
+    ctx.fillStyle = this.color;
+    ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+    ctx.restore();
+  }
+
+  get_current_grid() {
+    // Get the current grid the player is on
+    let grid_x = Math.floor((this.x - this.width) / 32 / 4);
+    let grid_y = Math.floor((this.y - this.height) / 32 / 4);
+    try {
+      this.current_grid = grids[grid_y + 1][grid_x];
+      this.nextGrid = grids[grid_y + 1][grid_x + 1];
+    } catch (e) {
+      // Do nothing.
+    }
+    // Get the grids position from the left side of the canvas
+  }
+
+  update() {
+    this.get_current_grid();
+
+    //Check if block is outside of the canvas
+
+    // Update position
+    this.x = game.player.x + this.offset + this.initialX;
+    this.x += this.vx;
+
+    // Collide with grid
+    if (this.x < game.playerinverseX - canvas.width / 2 || this.x > game.player.inverseX + canvas.width / 2) {
+      return;
+    } else {
+      this.vy += game.gravity;
+      this.y += this.vy;
+      if (this.current_grid) {
+        if (
+          this.current_grid.walkable &&
+          this.vy > 0 // Falling downward
+        ) {
+          this.y = this.current_grid.y - this.height;
+          this.vy = -this.vy * this.elasticity;
+        }
+      }
+    }
+
+    // Apply air resistance
+    this.vx *= game.airResistance;
+    this.vy *= game.airResistance;
+  }
+
+  grab(mouse) {
+    if (mouse.pressed) {
+      this.grabbed = false;
+      const lineLength = Math.sqrt(
+        (this.x + this.width / 2 - mouse.x) ** 2 +
+          (this.y + this.height / 2 - mouse.y) ** 2
+      );
+      if (lineLength < 150 || this.line) {
+        this.line = true;
+        this.airResistance = 0.99;
+        if (lineLength > 150) {
+          const stretchX = (this.x + this.width / 2 - mouse.x) / lineLength;
+          const stretchY = (this.y + this.height / 2 - mouse.y) / lineLength;
+          const force = (lineLength - 150) * game.ropeElasticity;
+          this.vx -= stretchX * force;
+          this.vy -= stretchY * force;
+        }
+      } else {
+        this.airResistance = 0.995;
+      }
+    } else {
+      this.line = false;
+      this.airResistance = 0.995;
+    }
   }
 }
 
@@ -468,8 +606,17 @@ class Game {
     this.leftx = this.player.x - canvas.width / 2;
     this.rightx = this.player.x + canvas.width / 2;
     this.gravity = 0.05;
-    this.pressed_keys = {a: false, d: false, space: false};
+    this.pressed_keys = { a: false, d: false, space: false };
 
+    // Game parameters
+    this.gravity = 0.5;
+    this.friction = 0.9;
+    this.airResistance = 0.99;
+    this.ropeElasticity = 0.1;
+
+    // Game state
+    this.blocks = [];
+    this.mouse = { x: 0, y: 0, pressed: false };
   }
 
   getRandomTexture() {
@@ -478,7 +625,7 @@ class Game {
 
   infinitewalk() {
     // Get the rightmost and leftmost grid
-  
+
     let rightmost = grids[0][grids[0].length - 1].x;
 
     if (this.rightx >= rightmost && this.player.movement_direction == 1) {
@@ -494,13 +641,12 @@ class Game {
         this.player.img_nr = 1;
       }
     }
-
   }
 
   updatePosition(update) {
-    if(update < 0 && this.rightCollision) {
+    if (update < 0 && this.rightCollision) {
       update = 0;
-    } else if(update > 0 && this.leftCollision) {
+    } else if (update > 0 && this.leftCollision) {
       update = 0;
     }
     this.player.vx = update;
@@ -517,17 +663,19 @@ class Game {
       this.player.movement_direction = 0;
     }
 
-
-
     if (this.player.movement_direction == 1) {
       if (this.player.playerOffset < 0) {
         this.player.playerOffset += this.player.move_speed;
       } else {
-      this.updatePosition(-this.player.move_speed);
+        this.updatePosition(-this.player.move_speed);
       }
     } else if (this.player.movement_direction == -1) {
       if (this.leftx < this.player.move_speed) {
-        if (this.player.playerOffset <= -canvas.width / 2 + this.player.move_speed) return;
+        if (
+          this.player.playerOffset <=
+          -canvas.width / 2 + this.player.move_speed
+        )
+          return;
         this.player.vx = 0;
         this.player.playerOffset -= this.player.move_speed;
       } else {
@@ -538,35 +686,42 @@ class Game {
     }
   }
 
-    update = () => {
-      this.updatePlayerSpeed();
-      this.infinitewalk();
-    
-      // Clear and redraw only visible grids
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let row of grids) {
-        for (let grid of row) {
-          if (
-            grid.x + grid.width > this.player.inverseX - canvas.width / 2 &&
-            grid.x < this.player.inverseX + canvas.width / 2
-          ) {
-            grid.draw(this.player.x - (canvas.width / 2));
-          }
+  update = () => {
+    this.updatePlayerSpeed();
+    this.infinitewalk();
+
+    // Clear and redraw only visible grids
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let row of grids) {
+      for (let grid of row) {
+        if (
+          grid.x + grid.width > this.player.inverseX - canvas.width / 2 &&
+          grid.x < this.player.inverseX + canvas.width / 2
+        ) {
+          grid.draw(this.player.x - canvas.width / 2);
         }
-      }    
-      // Update and draw the player
-      this.player.update();
-    };
+      }
+    }
+
+    for (const block of this.blocks) {
+      block.update();
+      block.draw(ctx, this.mouse);
+      block.grab(this.mouse);
+    }
+
+    // Update and draw the player
+    this.player.update();
+  };
 
   animate = (timestamp) => {
     const elapsed = timestamp - this.lastFrameTime;
-
 
     // Run the game logic only if enough time has passed
     if (elapsed > this.fpsInterval) {
       this.lastFrameTime = timestamp;
       this.currentFrame++;
-      if (this.currentFrame > 20) { // 20 frames per animation
+      if (this.currentFrame > 20) {
+        // 20 frames per animation
         this.currentFrame = 0;
         this.doAnimations();
       }
@@ -632,15 +787,15 @@ for (let i = 2; i < 72; i++) {
   imagePaths.push(`img/tiles/sheet_${i}.gif`);
 }
 
+const game = new Game(); // Initialize your game instance
+
 // Preload images and start the game
 preloadImages(imagePaths)
   .then(() => {
     console.log("All images preloaded successfully!");
-    const game = new Game(); // Initialize your game instance
     game.play(); // Start the game loop
   })
   .catch((error) => {
     console.error(error);
     alert("Image preloading failed. Check the console for details.");
   });
-
