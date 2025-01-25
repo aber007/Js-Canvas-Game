@@ -146,7 +146,7 @@ function applyTextureData(data, offset) {
       grid.img.onload = () => grid.draw();
       grid.img2.src = data[key].img2 || "";
       grid.collidable = data[key].collidable || false;
-      grid.walkable = data[key].walkable || true;
+      grid.walkable = data[key].walkable || false;
     } else {
       // Create a new grid if it doesn't exist
       let x = (col + offset) * 32 * 4;
@@ -330,8 +330,8 @@ class Player {
     this.inverseX = canvas.width / 2;
     this.y = canvas.height / 2;
 
-    this.move_speed = 5;
-    this.jump_speed = 15;
+    this.move_speed = 6;
+    this.jump_speed = 13;
 
     this.playerOffset = 0;
     this.playery = 0;
@@ -350,7 +350,7 @@ class Player {
     this.leftCollision = false;
     this.rightCollision = false;
   }
-  show_player() {
+  show_player(keepLastFrame = false) {
     // Draw on load
     ctx.drawImage(this.player_img, canvas.width/2+this.playerOffset, this.y, this.player_img.width*6, this.player_img.height*6);
     if (this.movement_direction == 1) {
@@ -408,16 +408,16 @@ class Player {
   }
   check_collision() {
     if (this.current_grid) {
-      this.current_grid.relativex = this.current_grid.x - game.leftx
       // Handle walkable tiles (platform-like behavior)
       if (
         this.current_grid.walkable &&
         this.vy > 0// Falling downward
       ) {
+        console.log(this.current_grid);
         this.vy = 0;
         this.y = this.current_grid.y - this.player_img.height * 6;
         this.onGround = true;
-        return; // Exit early since we landed
+        return true; // Exit early since we landed
       }
   
       // Handle collidable tiles (full collision)
@@ -429,6 +429,7 @@ class Player {
 
           game.updatePosition(this.move_speed);
         }
+        return true;
       }
       if (this.current_grid.collidable) {
         //Right collision
@@ -438,6 +439,7 @@ class Player {
 
           game.updatePosition(-this.move_speed);
         }
+        return;
       }
 
     }
@@ -536,21 +538,25 @@ class Game {
     }
   }
 
-  update = () => {
-    this.updatePlayerSpeed();
-    this.infinitewalk();
-
-    // Clear and redraw the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let row of grids) {
-      for (let grid of row) {
-        grid.draw(this.player.x - (canvas.width / 2));
-      }
-    }
-
-    // Update the player
-    this.player.update();
-  }
+    update = () => {
+      this.updatePlayerSpeed();
+      this.infinitewalk();
+    
+      // Clear and redraw only visible grids
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let row of grids) {
+        for (let grid of row) {
+          if (
+            grid.x + grid.width > this.player.inverseX - canvas.width / 2 &&
+            grid.x < this.player.inverseX + canvas.width / 2
+          ) {
+            grid.draw(this.player.x - (canvas.width / 2));
+          }
+        }
+      }    
+      // Update and draw the player
+      this.player.update();
+    };
 
   animate = (timestamp) => {
     const elapsed = timestamp - this.lastFrameTime;
@@ -607,6 +613,34 @@ class Game {
     load(0);
   }
 }
+// Preload function
+const preloadImages = (imagePaths) => {
+  return Promise.all(
+    imagePaths.map((path) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = path;
+        img.onload = () => resolve(path); // Image loaded successfully
+        img.onerror = () => reject(`Failed to load image: ${path}`); // Handle loading errors
+      });
+    })
+  );
+};
 
-let game = new Game();
-game.play();
+const imagePaths = [];
+for (let i = 2; i < 72; i++) {
+  imagePaths.push(`img/tiles/sheet_${i}.gif`);
+}
+
+// Preload images and start the game
+preloadImages(imagePaths)
+  .then(() => {
+    console.log("All images preloaded successfully!");
+    const game = new Game(); // Initialize your game instance
+    game.play(); // Start the game loop
+  })
+  .catch((error) => {
+    console.error(error);
+    alert("Image preloading failed. Check the console for details.");
+  });
+
