@@ -639,12 +639,12 @@ class CannonBall extends Block {
     this.y = y;
     this.angle = angle;
     this.vx = game.cannon.ballSpeed;
-    if (game.cannon.ballSpeed * angle < -25) {
-      this.vy = -25;
-    } else if (game.cannon.ballSpeed * angle > 25) {
-      this.vy = 25;
+    if (game.cannon.ballSpeed * this.angle < -game.cannon.ballSpeed) {
+      this.vy = -game.cannon.ballSpeed;
+    } else if (game.cannon.ballSpeed * this.angle > game.cannon.ballSpeed) {
+      this.vy = game.cannon.ballSpeed;
     } else {
-      this.vy = game.cannon.ballSpeed * angle;
+      this.vy = game.cannon.ballSpeed * this.angle;
     }
     this.color = "black";
   }
@@ -673,22 +673,45 @@ class Cannon {
     this.cannonBalls = [];
     this.ballSpeed = 25;
     this.ballSize = 20;
+
     this.cannonWheel = new Image();
     this.cannonWheel.src = "img/cannon/wheel.gif";
     this.cannon = new Image();
-    this.cannon.src = "img/cannon/1.gif";
+    this.img_nr = 1;
+    this.cannon.src = `img/cannon/${this.img_nr}.gif`;
+
     this.cannonBallAngle = 0;
+    this.centerX = 0;
+    this.centerY = 0;
+    this.angle = 1;
+    this.updateAngle = true;
+
+    this.specialCooldown = 0;
+    this.normalCooldown = 0;
+
+    this.specialMaxCooldown = 10;
+    this.normalMaxCooldown = 1;
   }
 
   draw(ctx, mouse) {
+    const image_Width = this.cannon.width * 4;
+    const image_Height = this.cannon.height * 4;
+
+    this.centerX = this.x + image_Width / 4 - 64;
+    this.centerY = this.y + image_Height / 2 + 32;
+
+    if (this.updateAngle) {
+    this.angle = Math.atan2(mouse.y - this.centerY, mouse.x - this.centerX);
+    }
+
     // Draw the cannon base
     ctx.save();
-    ctx.translate(this.x - 64, this.y + 64);
-    ctx.rotate(this.cannonBallAngle);
+    ctx.translate(this.centerX, this.centerY);
+    ctx.rotate(this.angle);
     ctx.drawImage(
       this.cannon,
-      0,
-      0,
+      -image_Width / 4,
+      -image_Height / 2 - ((this.img_nr - 1) * 3),
       this.cannon.width * 4,
       this.cannon.height * 4,
     );
@@ -703,18 +726,55 @@ class Cannon {
     );
     // Draw the cannon ball
   }
-  shoot(special) {
-    // Shoot the cannon
-    console.log("Shooting cannon!");
 
-    this.cannonBallAngle = (game.mouse.y - this.y) / (game.mouse.x - this.x);
+  animateSpecial() { 
+    // Switch img to 2,3,4,5,6,7 every 0.1 seconds
+    const specialAnimation = setInterval(() => {
+      if (this.img_nr < 7) {
+        this.img_nr += 1;
+      } else {
+        this.img_nr = 1;
+        clearInterval(specialAnimation);
+      }
+      this.cannon.src = `img/cannon/${this.img_nr}.gif`;
+
+    }, 100);
+
+  }
+
+  shoot(special) {
+    if (special && this.specialCooldown > 0) {
+      return;
+    } else if (!special && this.normalCooldown > 0) {
+      return;
+    }
+    if (special) {
+      this.specialCooldown = this.specialMaxCooldown;
+    } else {
+      this.normalCooldown = this.normalMaxCooldown;
+    }
+    // Shoot the cannon
+
+    this.cannonBallAngle = Math.atan2(game.mouse.y - this.y, game.mouse.x - this.x);
     const size = special ? this.ballSize * 4 : this.ballSize;
+
+    if (special) {
+      this.animateSpecial();
+    }
+
+    // Get loactio of the tip of the cannon
+    const tipX = this.centerX + Math.cos(this.angle) * 64;
+    const tipY = this.centerY + Math.sin(this.angle) * 64;
+
+    
+
+    
     
 
     this.cannonBalls.push(
       new CannonBall(
-        this.x,
-        this.y,
+        tipX,
+        tipY - size / 2,
         size,
         size,
         this.cannonBallAngle,
@@ -724,7 +784,11 @@ class Cannon {
   }
 
   update() {
+    this.cannon.src = `img/cannon/${this.img_nr}.gif`;
     // Update the cannon ball
+    if (game.mouse.pressed) {
+      this.shoot();
+    }
     this.draw(ctx, game.mouse);
     for (let ball of this.cannonBalls) {
       ball.update();
@@ -885,6 +949,12 @@ class Game {
         // 20 frames per animation
         this.currentFrame = 0;
         this.doAnimations();
+        if (this.cannon.specialCooldown > 0) {
+          this.cannon.specialCooldown -= 1/3;
+        }
+        if (this.cannon.normalCooldown > 0) {
+          this.cannon.normalCooldown -= 1/3;
+        }
       }
 
       // Update game logic
@@ -918,6 +988,7 @@ class Game {
 
     // Request the next frame
     if (this.towerDefense) {
+      console.log("Switching to tower defense");
       requestAnimationFrame(this.animateCannon);
     } else {
       requestAnimationFrame(this.animateCollect);
@@ -934,6 +1005,8 @@ class Game {
 
   playCannon() {
     unload();
+    this.x = canvas.width / 2;
+
     this.blocks = [];
     this.towerDefense = true;
     // Plays the tower defence game
@@ -943,7 +1016,14 @@ class Game {
     });
     addEventListener("mousedown", (e) => {
       if (e.button == 0) {
-        this.cannon.shoot();
+        this.mouse.pressed = true;
+      } else if (e.button == 2 && this.cannon.specialCooldown <= 0) {
+        this.cannon.img_nr = 2;
+      }
+    });
+    addEventListener("mouseup", (e) => {
+      if (e.button == 0) {
+        this.mouse.pressed = false;
       }
     });
     addEventListener("contextmenu", (e) => {
