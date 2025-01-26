@@ -356,6 +356,10 @@ function showCollidable() {
   }
 }
 
+function randomIntFromRange(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 class Player {
   constructor() {
     this.movement_direction = 0;
@@ -632,6 +636,80 @@ class Block {
   }
 }
 
+class Enemy extends Block {
+  constructor(x, y, width, height, game, elasticity = 0.8, playerNo = 0) {
+    super(x, y, width, height, game, elasticity, playerNo);
+    this.color = "red";
+    this.img_nr = 3;
+    this.texture = new Image();
+    this.texture.src = `img/enemy/fly/fly${this.img_nr}.gif`;
+    this.action = "fly";
+    this.y = randomIntFromRange(128, canvas.height + 128);
+
+    this.hp = 3;
+
+    setTimeout(() => {
+      this.animateFly();
+    }, randomIntFromRange(0, 250));
+  }
+  draw(ctx) {
+    ctx.drawImage(
+      this.texture,
+      this.x + this.img_nr * 27 - 200,
+      this.y,
+      this.texture.width * 4,
+      this.texture.height * 4
+    );
+  }
+
+  animateFly() {
+    // Wait 0.25 seconds before starting the animation
+
+    const flyAnimation = setInterval(() => {
+      if (this.img_nr < 10) {
+        this.img_nr += 1;
+      } else {
+        this.img_nr = 3;
+      }
+      this.texture.src = `img/enemy/fly/fly${this.img_nr}.gif`;
+    }, 250);
+  }
+
+  checkCollisionWithCannonBall() {
+    for (let ball of game.cannon.cannonBalls) {
+      if (
+        this.x < ball.x + ball.width &&
+        this.x + this.width > ball.x &&
+        this.y < ball.y + ball.height &&
+        this.y + this.height > ball.y
+      ) {
+        console.log("Colliding with cannon ball");
+        this.hp -= 1;
+        ball.killCannonBall();
+        if (this.hp <= 0) {
+          // Remove self from the enemies array
+          const index = game.enemies.indexOf(this);
+          game.enemies.splice(index, 1);
+        }
+      }
+    }
+  }
+
+  update() {
+    const vy = randomIntFromRange(-0.1, 0.1);
+    const vx = randomIntFromRange(-0.1, 0.1);
+    this.y += vy;
+    this.x -= vx;
+    if (this.y > canvas.height + 128) {
+      this.y = canvas.height + 256;
+    }
+
+    this.x -= 0.4;
+    this.draw(ctx);
+    this.checkCollisionWithCannonBall();
+  }
+}
+
 class CannonBall extends Block {
   constructor(x, y, width, height, angle) {
     super(x, y, width, height);
@@ -647,6 +725,7 @@ class CannonBall extends Block {
       this.vy = game.cannon.ballSpeed * this.angle;
     }
     this.color = "black";
+    this.alive = true;
   }
   draw(ctx) {
     // Draw the cannon ball as a circle
@@ -657,12 +736,25 @@ class CannonBall extends Block {
     ctx.closePath();
   }
   update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.vy += game.gravity;
-    this.vy *= game.airResistance;
-    this.vx *= game.airResistance;
-    this.draw(ctx);
+    if (this.alive) {
+      console.log(this.x, this.y);
+      this.x += this.vx;
+      this.y += this.vy;
+      this.vy += game.gravity;
+      this.vy *= game.airResistance;
+      this.vx *= game.airResistance;
+      if (this.y > canvas.height) {
+        this.alive = false;
+      }
+
+      this.draw(ctx);
+    }
+  }
+  killCannonBall() {
+    this.alive = false;
+    // Remove the cannon ball from the cannon balls array
+    const index = game.cannon.cannonBalls.indexOf(this);
+    game.cannon.cannonBalls.splice(index, 1);
   }
 }
 
@@ -687,10 +779,12 @@ class Cannon {
     this.updateAngle = true;
 
     this.specialCooldown = 0;
-    this.normalCooldown = 0;
-
     this.specialMaxCooldown = 10;
+    this.specialDamage = 1;
+
+    this.normalCooldown = 0;
     this.normalMaxCooldown = 1;
+    this.normalDamage = 1;
   }
 
   draw(ctx, mouse) {
@@ -701,7 +795,7 @@ class Cannon {
     this.centerY = this.y + image_Height / 2 + 32;
 
     if (this.updateAngle) {
-    this.angle = Math.atan2(mouse.y - this.centerY, mouse.x - this.centerX);
+      this.angle = Math.atan2(mouse.y - this.centerY, mouse.x - this.centerX);
     }
 
     // Draw the cannon base
@@ -711,12 +805,12 @@ class Cannon {
     ctx.drawImage(
       this.cannon,
       -image_Width / 4,
-      -image_Height / 2 - ((this.img_nr - 1) * 3),
+      -image_Height / 2 - (this.img_nr - 1) * 3,
       this.cannon.width * 4,
-      this.cannon.height * 4,
+      this.cannon.height * 4
     );
     ctx.restore();
-    
+
     ctx.drawImage(
       this.cannonWheel,
       this.x - 64,
@@ -727,7 +821,7 @@ class Cannon {
     // Draw the cannon ball
   }
 
-  animateSpecial() { 
+  animateSpecial() {
     // Switch img to 2,3,4,5,6,7 every 0.1 seconds
     const specialAnimation = setInterval(() => {
       if (this.img_nr < 7) {
@@ -737,9 +831,7 @@ class Cannon {
         clearInterval(specialAnimation);
       }
       this.cannon.src = `img/cannon/${this.img_nr}.gif`;
-
     }, 100);
-
   }
 
   shoot(special) {
@@ -755,7 +847,10 @@ class Cannon {
     }
     // Shoot the cannon
 
-    this.cannonBallAngle = Math.atan2(game.mouse.y - this.y, game.mouse.x - this.x);
+    this.cannonBallAngle = Math.atan2(
+      game.mouse.y - this.y,
+      game.mouse.x - this.x
+    );
     const size = special ? this.ballSize * 4 : this.ballSize;
 
     if (special) {
@@ -765,11 +860,6 @@ class Cannon {
     // Get loactio of the tip of the cannon
     const tipX = this.centerX + Math.cos(this.angle) * 64;
     const tipY = this.centerY + Math.sin(this.angle) * 64;
-
-    
-
-    
-    
 
     this.cannonBalls.push(
       new CannonBall(
@@ -824,6 +914,12 @@ class Game {
     // Game state
     this.blocks = [new Block(375, 0, 50, 50, this)];
     this.mouse = { x: 0, y: 0, pressed: false };
+
+    // Tower defence related
+    this.enemies = [];
+    this.round = 0;
+    this.playerReady = false;
+    this.health = 10;
   }
 
   getRandomTexture() {
@@ -930,12 +1026,22 @@ class Game {
     }
 
     this.cannon.update();
+    for (let enemy of this.enemies) {
+      enemy.update();
+    }
 
-    // Update and draw blocks
-    for (const block of this.blocks) {
-      block.update();
-      block.draw(ctx, this.mouse);
-      block.grab(this.mouse);
+    if (this.playerReady) {
+      this.round += 1;
+      // Spawn enemies
+      this.playerReady = false;
+      for (let i = 0; i < this.round * Math.round(Math.random() * 3 + 1); i++) {
+        this.enemies.push(
+          new Enemy(canvas.width - 128, canvas.height / 2, 32, 64, this)
+        );
+      }
+    }
+    for (let enemy of this.enemies) {
+      enemy.update();
     }
   };
 
@@ -950,10 +1056,10 @@ class Game {
         this.currentFrame = 0;
         this.doAnimations();
         if (this.cannon.specialCooldown > 0) {
-          this.cannon.specialCooldown -= 1/3;
+          this.cannon.specialCooldown -= 1 / 3;
         }
         if (this.cannon.normalCooldown > 0) {
-          this.cannon.normalCooldown -= 1/3;
+          this.cannon.normalCooldown -= 1 / 3;
         }
       }
 
@@ -1052,6 +1158,7 @@ class Game {
       }
       if (e.key == "e") {
         this.switchGame();
+        this.playerReady = true;
       }
     });
     addEventListener("keyup", (e) => {
