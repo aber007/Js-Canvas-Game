@@ -673,27 +673,41 @@ class Cannon {
     this.cannonBalls = [];
     this.ballSpeed = 25;
     this.ballSize = 20;
+    this.cannonWheel = new Image();
+    this.cannonWheel.src = "img/cannon/wheel.gif";
+    this.cannon = new Image();
+    this.cannon.src = "img/cannon/1.gif";
+    this.cannonBallAngle = 0;
   }
 
   draw(ctx, mouse) {
-    // Draw the cannon
+    // Draw the cannon base
     ctx.save();
-    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
-    ctx.rotate(this.angle);
-    ctx.fillStyle = "black";
-    ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+    ctx.translate(this.x - 64, this.y + 64);
+    ctx.rotate(this.cannonBallAngle);
+    ctx.drawImage(
+      this.cannon,
+      0,
+      0,
+      this.cannon.width * 4,
+      this.cannon.height * 4,
+    );
     ctx.restore();
-
+    
+    ctx.drawImage(
+      this.cannonWheel,
+      this.x - 64,
+      this.y + 64,
+      this.cannonWheel.width * 4,
+      this.cannonWheel.height * 4
+    );
     // Draw the cannon ball
-    if (this.cannonBall) {
-      this.cannonBall.draw(ctx);
-    }
   }
   shoot(special) {
     // Shoot the cannon
     console.log("Shooting cannon!");
 
-    const cannonBallAngle = (game.mouse.y - this.y) / (game.mouse.x - this.x);
+    this.cannonBallAngle = (game.mouse.y - this.y) / (game.mouse.x - this.x);
     const size = special ? this.ballSize * 4 : this.ballSize;
     
 
@@ -703,7 +717,7 @@ class Cannon {
         this.y,
         size,
         size,
-        cannonBallAngle,
+        this.cannonBallAngle,
         this
       )
     );
@@ -711,6 +725,7 @@ class Cannon {
 
   update() {
     // Update the cannon ball
+    this.draw(ctx, game.mouse);
     for (let ball of this.cannonBalls) {
       ball.update();
     }
@@ -995,6 +1010,11 @@ const imagePaths = [];
 for (let i = 2; i < 72; i++) {
   imagePaths.push(`img/tiles/sheet_${i}.gif`);
 }
+// Load cannon imgages
+for (let i = 1; i < 8; i++) {
+  imagePaths.push(`img/cannon/${i}.gif`);
+}
+imagePaths.push("img/cannon/wheel.gif");
 
 const game = new Game();
 
