@@ -645,6 +645,7 @@ class Enemy extends Block {
     this.texture.src = `img/enemy/fly/fly${this.img_nr}.gif`;
     this.action = "fly";
     this.y = randomIntFromRange(128, canvas.height + 128);
+    this.x = canvas.width + 64;
 
     this.hp = 3;
 
@@ -655,7 +656,7 @@ class Enemy extends Block {
   draw(ctx) {
     ctx.drawImage(
       this.texture,
-      this.x + this.img_nr * 27 - 200,
+      this.x,
       this.y,
       this.texture.width * 4,
       this.texture.height * 4
@@ -674,22 +675,34 @@ class Enemy extends Block {
       this.texture.src = `img/enemy/fly/fly${this.img_nr}.gif`;
     }, 250);
   }
+  animateHit() {
+    const hitAnimation = setInterval(() => {
+      if (this.img_nr < 4) {
+        this.img_nr += 1;
+      } else {
+        this.img_nr = 3;
+        clearInterval(hitAnimation);
+      }
+      this.texture.src = `img/enemy/hit/hit${this.img_nr}.gif`;
+    }, 100);
+  }
 
   checkCollisionWithCannonBall() {
     for (let ball of game.cannon.cannonBalls) {
       if (
-        this.x < ball.x + ball.width &&
+        this.x + 10 < ball.x + ball.width &&
         this.x + this.width > ball.x &&
         this.y < ball.y + ball.height &&
         this.y + this.height > ball.y
       ) {
-        console.log("Colliding with cannon ball");
         this.hp -= 1;
         ball.killCannonBall();
         if (this.hp <= 0) {
           // Remove self from the enemies array
           const index = game.enemies.indexOf(this);
           game.enemies.splice(index, 1);
+        } else {
+          this.animateHit();
         }
       }
     }
@@ -737,7 +750,6 @@ class CannonBall extends Block {
   }
   update() {
     if (this.alive) {
-      console.log(this.x, this.y);
       this.x += this.vx;
       this.y += this.vy;
       this.vy += game.gravity;
