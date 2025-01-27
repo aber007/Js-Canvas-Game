@@ -139,7 +139,7 @@ function load(texture_nr = null, offset = 0) {
         console.log(`Successfully loaded ${fileName}`);
       })
       .catch((err) => {
-        alert(`Error: ${err.message}`);
+        console.log(`Error: ${err}`);
       });
   } else {
     // Allow the user to select a file manually
@@ -171,8 +171,6 @@ function applyTextureData(data, offset) {
     let [row, col] = key.split(",").map(Number); // Parse grid coordinates
     let grid = grids[row][col + offset];
     if (grid) {
-      let x = (col + offset) * 32 * 4;
-      let y = row * 32 * 4;
       grid.img.src = data[key].img || "";
       grid.img.onload = () => grid.draw();
       grid.img2.src = data[key].img2 || "";
@@ -205,10 +203,18 @@ function applyTextureData(data, offset) {
           let y = row[0].y;
           let grid = new Grid(x, y, "lightblue");
           row.push(grid);
-          // Chance to add a block at that row
         }
-        if (Math.random() < 0.1) {
-          game.blocks.push(new Block(x + 64, canvas.height / 2, 32, 32));
+        // Chance to add a block at that row
+        if (Math.random() < 0.01) {
+          // Decide color of block (value)
+          let color = "blue";
+          const value = Math.random();
+          if (value < 0.1) {
+            color = "yellow";
+          } else if (value < 0.4) {
+            color = "green";
+          }
+          game.blocks.push(new Block(x + 64, canvas.height / 2, 32, 32, color));
         }
       }
     }
@@ -374,7 +380,7 @@ class Player {
     this.move_speed = 6;
     this.jump_speed = 13;
 
-    this.playerOffset = 0;
+    this.playerOffset = -600;
     this.playery = 0;
 
     this.vx = 0;
@@ -456,14 +462,41 @@ class Player {
     // Check if the player is colliding with block
     for (const block of game.blocks) {
       if (
-        this.x < block.x + block.width &&
-        this.x + this.player_img.width * game.img_scale > block.x &&
-        this.y < block.y + block.height &&
-        this.y + this.player_img.height * game.img_scale > block.y
+        this.inverseX - canvas.width / 2 + this.player_img.width * 3 <
+          block.x + block.width &&
+        this.inverseX - canvas.width / 2 + this.player_img.width * 3 >
+          block.x
       ) {
         console.log("Colliding with block");
+        // Add value to score
+        if (block.canBePickedUp) {
+          if (block.color === "yellow") {
+            game.yellow += 1;
+          } else if (block.color === "green") {
+            game.green += 1;
+          } else if (block.color === "blue") {
+            game.blue += 1;
+          }
+        }
+        block.canBePickedUp = false;
+        // Delete block from blocks
+        const index = game.blocks.indexOf(block);
+        game.blocks.splice(index, 1);
       }
     }
+  }
+
+  drawInfoBar(ctx) {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, 30);
+
+    // Draw the health text
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    ctx.fillText("Health: " + game.health, 10, 20);
+    ctx.fillText("Yellow: " + game.yellow, 150, 20);
+    ctx.fillText("Green: " + game.green, 320, 20);
+    ctx.fillText("Blue: " + game.blue, 490, 20);
   }
 
   check_collision() {
@@ -514,15 +547,17 @@ class Player {
     // Update the player's position
     this.get_current_grid();
     const yOffset = this.check_collision();
+    this.checkCollisionWithBlock();
     this.applyGravity();
     this.move();
     this.show_player();
+    this.drawInfoBar(ctx);
   }
 }
 
 class Block {
-  constructor(x, y, width, height, game, elasticity = 0.8, playerNo = 0) {
-    game = game;
+  constructor(x, y, width, height, color, elasticity = 0.8, playerNo = 0) {
+    this.game = game;
     this.initialX = x;
     this.x = x;
     this.y = y;
@@ -532,7 +567,7 @@ class Block {
     this.vy = 0;
     this.elasticity = elasticity;
     this.playerNo = playerNo;
-    this.color = "rgb(0, 128, 255)";
+    this.color = color;
     this.mass = width * height;
     this.angle = 0;
     this.angularVelocity = 0;
@@ -540,6 +575,7 @@ class Block {
     this.offset = 0;
     this.current_grid = null;
     this.nextGrid = null;
+    this.canBePickedUp = true;
   }
 
   draw(ctx, mouse) {
@@ -555,7 +591,10 @@ class Block {
 
     // Draw the block
     ctx.save();
-    ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+    ctx.translate(
+      game.player.x + this.offset + this.initialX + this.width / 2,
+      this.y + this.height / 2
+    );
     ctx.rotate(this.angle);
     ctx.fillStyle = this.color;
     ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
@@ -581,13 +620,11 @@ class Block {
     //Check if block is outside of the canvas
 
     // Update position
-    this.x = game.player.x + this.offset + this.initialX;
-    this.x += this.vx;
 
     // Collide with grid
     if (
-      this.x < game.playerinverseX - canvas.width / 2 ||
-      this.x > game.player.inverseX + canvas.width / 2
+      this.x < game.player.inverseX - canvas.width + game.player.player_img.width * 3 ||
+      this.x > game.player.inverseX + canvas.width + game.player.player_img.width * 3
     ) {
       return;
     } else {
@@ -640,11 +677,11 @@ class Enemy extends Block {
   constructor(x, y, width, height, game, elasticity = 0.8, playerNo = 0) {
     super(x, y, width, height, game, elasticity, playerNo);
     this.color = "red";
-    this.img_nr = 3;
+    this.img_nr = 1;
     this.texture = new Image();
     this.texture.src = `img/enemy/fly/fly${this.img_nr}.gif`;
     this.action = "fly";
-    this.y = randomIntFromRange(128, canvas.height + 128);
+    this.y = randomIntFromRange(128, canvas.height - 128);
     this.x = canvas.width + 64;
 
     this.hp = 3;
@@ -666,25 +703,43 @@ class Enemy extends Block {
   animateFly() {
     // Wait 0.25 seconds before starting the animation
 
-    const flyAnimation = setInterval(() => {
-      if (this.img_nr < 10) {
+    this.flyAnimation = setInterval(() => {
+      if (this.img_nr < 8) {
         this.img_nr += 1;
       } else {
-        this.img_nr = 3;
+        this.img_nr = 1;
       }
       this.texture.src = `img/enemy/fly/fly${this.img_nr}.gif`;
     }, 250);
   }
   animateHit() {
-    const hitAnimation = setInterval(() => {
+    this.img_nr = 0;
+    this.hitAnimation = setInterval(() => {
       if (this.img_nr < 4) {
         this.img_nr += 1;
       } else {
-        this.img_nr = 3;
-        clearInterval(hitAnimation);
+        this.img_nr = 1;
+        clearInterval(this.hitAnimation);
       }
       this.texture.src = `img/enemy/hit/hit${this.img_nr}.gif`;
-    }, 100);
+    }, 200);
+  }
+
+  animateDeath() {
+    clearInterval(this.flyAnimation);
+    clearInterval(this.hitAnimation);
+    this.deathAnimation = setInterval(() => {
+      this.img_nr = 2;
+      if (this.y < canvas.height) {
+        this.vy += 2 * game.gravity;
+        this.y += this.vy;
+      } else {
+        const index = game.enemies.indexOf(this);
+        game.enemies.splice(index, 1);
+        clearInterval(this.deathAnimation);
+      }
+      this.texture.src = `img/enemy/die/die${this.img_nr}.gif`;
+    }, 50);
   }
 
   checkCollisionWithCannonBall() {
@@ -696,11 +751,12 @@ class Enemy extends Block {
         this.y + this.height > ball.y
       ) {
         this.hp -= 1;
-        ball.killCannonBall();
+        if (ball.special != "pierce") {
+          ball.killCannonBall();
+        }
         if (this.hp <= 0) {
           // Remove self from the enemies array
-          const index = game.enemies.indexOf(this);
-          game.enemies.splice(index, 1);
+          this.animateDeath();
         } else {
           this.animateHit();
         }
@@ -714,7 +770,7 @@ class Enemy extends Block {
     this.y += vy;
     this.x -= vx;
     if (this.y > canvas.height + 128) {
-      this.y = canvas.height + 256;
+      this.y = canvas.height - 256;
     }
 
     this.x -= 0.4;
@@ -724,7 +780,7 @@ class Enemy extends Block {
 }
 
 class CannonBall extends Block {
-  constructor(x, y, width, height, angle) {
+  constructor(x, y, width, height, angle, special) {
     super(x, y, width, height);
     this.x = x;
     this.y = y;
@@ -739,6 +795,7 @@ class CannonBall extends Block {
     }
     this.color = "black";
     this.alive = true;
+    this.special = special;
   }
   draw(ctx) {
     // Draw the cannon ball as a circle
@@ -793,6 +850,7 @@ class Cannon {
     this.specialCooldown = 0;
     this.specialMaxCooldown = 10;
     this.specialDamage = 1;
+    this.specialType = "pierce";
 
     this.normalCooldown = 0;
     this.normalMaxCooldown = 1;
@@ -865,7 +923,9 @@ class Cannon {
     );
     const size = special ? this.ballSize * 4 : this.ballSize;
 
+    let specialBall = "";
     if (special) {
+      specialBall = this.specialType;
       this.animateSpecial();
     }
 
@@ -880,7 +940,7 @@ class Cannon {
         size,
         size,
         this.cannonBallAngle,
-        this
+        specialBall
       )
     );
   }
@@ -914,6 +974,32 @@ class Game {
     this.gravity = 0.05;
     this.pressed_keys = { a: false, d: false, space: false };
 
+    // Background images (10)
+    this.bg1 = new Image();
+    this.bg2 = new Image();
+    this.bg3 = new Image();
+    this.bg4 = new Image();
+    this.bg5 = new Image();
+    this.bg6 = new Image();
+    this.bg7 = new Image();
+    this.bg8 = new Image();
+    this.bg9 = new Image();
+    this.bg10 = new Image();
+
+    this.bg1.src = "img/background/bg1.png";
+    this.bg2.src = "img/background/bg2.png";
+    this.bg3.src = "img/background/bg3.png";
+    this.bg4.src = "img/background/bg4.png";
+    this.bg5.src = "img/background/bg5.png";
+    this.bg6.src = "img/background/bg6.png";
+    this.bg7.src = "img/background/bg7.png";
+    this.bg8.src = "img/background/bg8.png";
+    this.bg9.src = "img/background/bg9.png";
+    this.bg10.src = "img/background/bg10.png";
+
+    this.bg11 = new Image();
+    this.bg11.src = "img/background/creature.png";
+
     // Game parameters
     this.gravity = 0.5;
     this.friction = 0.9;
@@ -924,7 +1010,7 @@ class Game {
     this.img_scale = 6;
 
     // Game state
-    this.blocks = [new Block(375, 0, 50, 50, this)];
+    this.blocks = [];
     this.mouse = { x: 0, y: 0, pressed: false };
 
     // Tower defence related
@@ -932,6 +1018,9 @@ class Game {
     this.round = 0;
     this.playerReady = false;
     this.health = 10;
+    this.yellow = 0;
+    this.green = 0;
+    this.blue = 0;
   }
 
   getRandomTexture() {
@@ -1001,12 +1090,36 @@ class Game {
     }
   }
 
+  updateBackground() {
+    // Show the images in the bg folder as background and each move at different speed
+    const bgImages = [this.bg1, this.bg2, this.bg3, this.bg4, this.bg5, this.bg6, this.bg7, this.bg8, this.bg9, this.bg10];
+    const speeds = [1024, 512, 256, 128, 64, 32, 16, 8, 4, 2];
+
+    for (let i = 0; i < bgImages.length; i++) {
+      let img = bgImages[i];
+      let speed = speeds[i];
+      let x = (this.player.x) / speed % img.width;
+
+      if (i == 8){
+        // Show the creature
+
+      }
+
+      // Draw the image multiple times to cover the entire canvas width
+      for (let j = -1; j <= canvas.width / img.width + 1; j++) {
+        ctx.drawImage(img, x + j * img.width, -img.height, img.width * 2, img.height * 2);
+      }
+    }
+  }
+
   updateCollect = () => {
+    
     this.updatePlayerSpeed();
     this.infinitewalk();
-
+    
     // Clear and redraw only visible grids
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.updateBackground();
     for (let row of grids) {
       for (let grid of row) {
         if (
@@ -1054,6 +1167,10 @@ class Game {
     }
     for (let enemy of this.enemies) {
       enemy.update();
+    }
+    if (this.enemies.length == 0) {
+      this.round += 1;
+      this.switchGame();
     }
   };
 
