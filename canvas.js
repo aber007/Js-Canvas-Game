@@ -1100,11 +1100,14 @@ class Game {
       let speed = speeds[i];
       let x = (this.player.x) / speed % img.width;
 
-      if (i == 7 && x < -156 && x > -555){
-        // Show the creature
-        console.log(x);
+      // Show the creature
+
+      console.log(this.player.x);
+      if (i == 7 && x < -156 && x > -555 && (this.player.x > -5000 || (this.player.x < -16000 && this.player.x > -19000))) {  
         ctx.drawImage(this.bg11, (x + 1500), (canvas.height/2) + 160, this.bg11.width , this.bg11.height);
       }
+
+
 
       // Draw the image multiple times to cover the entire canvas width
       for (let j = -1; j <= canvas.width / img.width + 1; j++) {
