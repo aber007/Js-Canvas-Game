@@ -464,18 +464,20 @@ class Player {
         this.inverseX - canvas.width / 2 + this.player_img.width * 3 <
           block.x + block.width &&
         this.inverseX - canvas.width / 2 + this.player_img.width * 3 >
-          block.x
+          block.x &&
+        this.y < block.y + block.height &&
+        this.y + this.player_img.height > block.y - 128
       ) {
-        console.log("Colliding with block");
         // Add value to score
         if (block.canBePickedUp) {
           if (block.color === "yellow") {
-            game.yellow += 1;
+            game.inventory.push("yellow");
           } else if (block.color === "green") {
-            game.green += 1;
+            game.inventory.push("green");
           } else if (block.color === "blue") {
-            game.blue += 1;
+            game.inventory.push("blue");
           }
+          game.weight += 1;
         }
         block.canBePickedUp = false;
         // Delete block from blocks
@@ -556,7 +558,6 @@ class Player {
 
 class Block {
   constructor(x, y, width, height, color, elasticity = 0.8, playerNo = 0) {
-    this.game = game;
     this.initialX = x;
     this.x = x;
     this.y = y;
@@ -571,10 +572,12 @@ class Block {
     this.angle = 0;
     this.angularVelocity = 0;
     this.line = false;
+    this.lineOffset = 0;
     this.offset = 0;
     this.current_grid = null;
     this.nextGrid = null;
     this.canBePickedUp = true;
+    this.grabbed = false;
   }
 
   draw(ctx, mouse) {
@@ -582,7 +585,10 @@ class Block {
       // Draw the rope
       ctx.beginPath();
       ctx.moveTo(this.x + this.width / 2, this.y + this.height / 2);
-      ctx.lineTo(mouse.x, mouse.y);
+      ctx.lineTo(
+        canvas.width / 2 + game.player.player_img.width * 3,
+        game.player.y + game.player.player_img.height * 3
+      );
       ctx.strokeStyle = "black";
       ctx.lineWidth = 2;
       ctx.stroke();
@@ -591,7 +597,11 @@ class Block {
     // Draw the block
     ctx.save();
     ctx.translate(
-      game.player.x + this.offset + this.initialX + this.width / 2,
+      game.player.x -
+        this.lineOffset +
+        this.offset +
+        this.initialX +
+        this.width / 2,
       this.y + this.height / 2
     );
     ctx.rotate(this.angle);
@@ -616,59 +626,25 @@ class Block {
   update() {
     this.get_current_grid();
 
-    //Check if block is outside of the canvas
+    // Check if block is outside of the canvas
 
     // Update position
 
     // Collide with grid
-    if (
-      this.x < game.player.inverseX - canvas.width + game.player.player_img.width * 3 ||
-      this.x > game.player.inverseX + canvas.width + game.player.player_img.width * 3
-    ) {
-      return;
-    } else {
-      this.vy += game.gravity;
-      this.y += this.vy;
-      if (this.current_grid) {
-        if (
-          this.current_grid.walkable &&
-          this.vy > 0 // Falling downward
-        ) {
-          this.y = this.current_grid.y - this.height;
-          this.vy = -this.vy * this.elasticity;
-        }
+    this.vy += game.gravity;
+    this.y += this.vy;
+
+    if (this.current_grid) {
+      if (
+        this.current_grid.walkable &&
+        this.vy > 0 // Falling downward
+      ) {
+        this.y = this.current_grid.y - this.height;
+        this.vy = -this.vy * this.elasticity;
       }
     }
 
-    // Apply air resistance
-    this.vx *= game.airResistance;
-    this.vy *= game.airResistance;
-  }
-
-  grab(mouse) {
-    if (mouse.pressed) {
-      this.grabbed = false;
-      const lineLength = Math.sqrt(
-        (this.x + this.width / 2 - mouse.x) ** 2 +
-          (this.y + this.height / 2 - mouse.y) ** 2
-      );
-      if (lineLength < 150 || this.line) {
-        this.line = true;
-        this.airResistance = 0.99;
-        if (lineLength > 150) {
-          const stretchX = (this.x + this.width / 2 - mouse.x) / lineLength;
-          const stretchY = (this.y + this.height / 2 - mouse.y) / lineLength;
-          const force = (lineLength - 150) * game.ropeElasticity;
-          this.vx -= stretchX * force;
-          this.vy -= stretchY * force;
-        }
-      } else {
-        this.airResistance = 0.995;
-      }
-    } else {
-      this.line = false;
-      this.airResistance = 0.995;
-    }
+    // Call grab method to check if the block should be grabbed
   }
 }
 
@@ -998,6 +974,9 @@ class Game {
 
     this.bg11 = new Image();
     this.bg11.src = "img/background/creature.png";
+    this.hat = new Image();
+    this.hat.src = "img/background/hat.gif";
+    this.maybeHat = false;
 
     // Game parameters
     this.gravity = 0.5;
@@ -1005,11 +984,17 @@ class Game {
     this.airResistance = 0.99;
     this.ropeElasticity = 0.1;
 
+    // Collect settings
+    this.weight = 0;
+    this.weightMultiplier = 1;
+    this.inventory = [];
+
+
     // Img settints
     this.img_scale = 6;
 
     // Game state
-    this.blocks = [];
+    this.blocks = [new Block(500, 200, 32, 32, "blue")];
     this.mouse = { x: 0, y: 0, pressed: false };
 
     // Tower defence related
@@ -1046,12 +1031,32 @@ class Game {
     }
   }
 
+  dropLastBlock() {
+    // Drop the last block in the inventory
+    if (this.inventory.length > 0) {
+      this.inventory.pop();
+      this.weight -= 1;
+    }
+  }
+
   updatePosition(update) {
     if (update > 0 && this.player.rightCollision) {
       update = 0;
     } else if (update < 0 && this.player.leftCollision) {
       update = 0;
     }
+    if(update > 0){
+      update -= this.weight / this.weightMultiplier;
+      if (update < 2) {
+        update = 2;
+      }
+    } else if (update < 0){
+      update += this.weight / this.weightMultiplier;
+      if (update > -2) {
+        update = -2;
+      }
+    }
+      
     this.player.vx = update;
     this.leftx -= update;
     this.rightx -= update;
@@ -1091,35 +1096,59 @@ class Game {
 
   updateBackground() {
     // Show the images in the bg folder as background and each move at different speed
-    const bgImages = [this.bg1, this.bg2, this.bg3, this.bg4, this.bg5, this.bg6, this.bg7, this.bg8, this.bg9, this.bg10];
+    const bgImages = [
+      this.bg1,
+      this.bg2,
+      this.bg3,
+      this.bg4,
+      this.bg5,
+      this.bg6,
+      this.bg7,
+      this.bg8,
+      this.bg9,
+      this.bg10,
+    ];
     const speeds = [1024, 512, 256, 128, 64, 32, 16, 8, 4, 2];
 
     for (let i = 0; i < bgImages.length; i++) {
       let img = bgImages[i];
       let speed = speeds[i];
-      let x = (this.player.x) / speed % img.width;
+      let x = (this.player.x / speed) % img.width;
 
       // Show the creature
-
-      console.log(this.player.x);
-      if (i == 7 && x < -156 && x > -555 && (this.player.x > -5000 || (this.player.x < -16000 && this.player.x > -19000))) {  
-        ctx.drawImage(this.bg11, (x + 1500), (canvas.height/2) + 160, this.bg11.width , this.bg11.height);
+      if (
+        i == 7 &&
+        x < -156 &&
+        x > -555 &&
+        (this.player.x > -5000 ||
+          (this.player.x < -16000 && this.player.x > -19000))
+      ) {
+        ctx.drawImage(
+          this.bg11,
+          x + 1500,
+          canvas.height / 2 + 160,
+          this.bg11.width,
+          this.bg11.height
+        );
       }
-
-
 
       // Draw the image multiple times to cover the entire canvas width
       for (let j = -1; j <= canvas.width / img.width + 1; j++) {
-        ctx.drawImage(img, x + j * img.width, -img.height, img.width * 2, img.height * 2);
+        ctx.drawImage(
+          img,
+          x + j * img.width,
+          -img.height,
+          img.width * 2,
+          img.height * 2
+        );
       }
     }
   }
 
   updateCollect = () => {
-    
     this.updatePlayerSpeed();
     this.infinitewalk();
-    
+
     // Clear and redraw only visible grids
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     this.updateBackground();
@@ -1137,7 +1166,6 @@ class Game {
     for (const block of this.blocks) {
       block.update();
       block.draw(ctx, this.mouse);
-      block.grab(this.mouse);
     }
 
     // Update and draw the player
@@ -1291,6 +1319,9 @@ class Game {
       if (e.key == "e") {
         this.switchGame();
         this.playerReady = true;
+      }
+      if (e.key == "q") {
+        this.dropLastBlock();
       }
     });
     addEventListener("keyup", (e) => {
