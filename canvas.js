@@ -166,7 +166,6 @@ function load(texture_nr = null, offset = 0) {
 
 // Helper function to apply the loaded data to the grid
 function applyTextureData(data, offset) {
-  console.log(data);
   for (let key in data) {
     let [row, col] = key.split(",").map(Number); // Parse grid coordinates
     let grid = grids[row][col + offset];
