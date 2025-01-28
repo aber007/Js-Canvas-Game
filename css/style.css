@@ -2,9 +2,8 @@ body {
     background-color: black;
 }
 canvas {
-    border: 1px solid black;
-    display: flex;
     margin: 0 auto;
+    display: flex;
     background-color: darkslategray;
     
 }
