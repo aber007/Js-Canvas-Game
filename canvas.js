@@ -206,12 +206,12 @@ function applyTextureData(data, offset) {
         // Chance to add a block at that row
         if (Math.random() < 0.01) {
           // Decide color of block (value)
-          let color = "blue";
+          let color = "gray";
           const value = Math.random();
           if (value < 0.1) {
-            color = "yellow";
+            color = "blue";
           } else if (value < 0.4) {
-            color = "green";
+            color = "yellow";
           }
           game.blocks.push(new Block(x + 64, canvas.height / 2, 32, 32, color));
         }
@@ -472,8 +472,8 @@ class Player {
         if (block.canBePickedUp) {
           if (block.color === "yellow") {
             game.inventory.push("yellow");
-          } else if (block.color === "green") {
-            game.inventory.push("green");
+          } else if (block.color === "gray") {
+            game.inventory.push("gray");
           } else if (block.color === "blue") {
             game.inventory.push("blue");
           }
@@ -486,18 +486,24 @@ class Player {
       }
     }
   }
-
-  drawInfoBar(ctx) {
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, 30);
-
-    // Draw the health text
-    ctx.fillStyle = "white";
-    ctx.font = "20px Arial";
-    ctx.fillText("Health: " + game.health, 10, 20);
-    ctx.fillText("Yellow: " + game.yellow, 150, 20);
-    ctx.fillText("Green: " + game.green, 320, 20);
-    ctx.fillText("Blue: " + game.blue, 490, 20);
+  redeemCoins() {
+    if (this.x >= 765) {
+      if (game.inventory.includes("yellow")) {
+        game.yellow += 1;
+        game.weight -= 1;
+        game.inventory.splice(game.inventory.indexOf("yellow"), 1);
+      }
+      if (game.inventory.includes("gray")) {
+        game.gray += 1;
+        game.weight -= 1;
+        game.inventory.splice(game.inventory.indexOf("gray"), 1);
+      }
+      if (game.inventory.includes("blue")) {
+        game.blue += 1;
+        game.weight -= 1;
+        game.inventory.splice(game.inventory.indexOf("blue"), 1);
+      }
+    }
   }
 
   check_collision() {
@@ -552,7 +558,7 @@ class Player {
     this.applyGravity();
     this.move();
     this.show_player();
-    this.drawInfoBar(ctx);
+    this.redeemCoins();
   }
 }
 
@@ -975,8 +981,14 @@ class Game {
     this.bg11 = new Image();
     this.bg11.src = "img/background/creature.png";
     this.hat = new Image();
-    this.hat.src = "img/background/hat.gif";
+    this.hat.src = "img/background/hat.png";
     this.maybeHat = false;
+
+    this.hud = new Image();
+    this.hud.src = "img/background/UI.png";
+
+    this.tower = new Image();
+    this.tower.src = "img/tower.png";
 
     // Game parameters
     this.gravity = 0.5;
@@ -989,12 +1001,11 @@ class Game {
     this.weightMultiplier = 1;
     this.inventory = [];
 
-
     // Img settints
     this.img_scale = 6;
 
     // Game state
-    this.blocks = [new Block(500, 200, 32, 32, "blue")];
+    this.blocks = [];
     this.mouse = { x: 0, y: 0, pressed: false };
 
     // Tower defence related
@@ -1002,8 +1013,9 @@ class Game {
     this.round = 0;
     this.playerReady = false;
     this.health = 10;
+    this.maxHealth = 10;
     this.yellow = 0;
-    this.green = 0;
+    this.gray = 0;
     this.blue = 0;
   }
 
@@ -1045,18 +1057,18 @@ class Game {
     } else if (update < 0 && this.player.leftCollision) {
       update = 0;
     }
-    if(update > 0){
+    if (update > 0) {
       update -= this.weight / this.weightMultiplier;
-      if (update < 2) {
-        update = 2;
+      if (update < 0) {
+        update = 0;
       }
-    } else if (update < 0){
+    } else if (update < 0) {
       update += this.weight / this.weightMultiplier;
-      if (update > -2) {
-        update = -2;
+      if (update > 0) {
+        update = 0;
       }
     }
-      
+
     this.player.vx = update;
     this.leftx -= update;
     this.rightx -= update;
@@ -1145,6 +1157,43 @@ class Game {
     }
   }
 
+  displayCastle() {
+    // Draw black background behind castle
+    ctx.fillStyle = "black";
+    ctx.fillRect(this.player.x - canvas.width / 2 + 15, -32, this.tower.width * 5, this.tower.height * 6);
+
+    // Display the castle
+    ctx.drawImage(
+      this.tower,
+      this.player.x - canvas.width / 2 + 15,
+      -32,
+      this.tower.width * 6,
+      this.tower.height * 6
+    );
+  }
+
+  showHUD() {
+    // Draw the HUD
+    ctx.drawImage(this.hud, 0, 0, this.hud.width, this.hud.height);
+
+    // Draw the hp bar
+    const maxLength = 93;
+    const healthLength = (this.health / this.maxHealth) * maxLength;
+    ctx.fillStyle = "red";
+    ctx.fillRect(73, 25, healthLength, 13);
+
+    const inventoryLength = (this.weight / this.player.move_speed) * maxLength;
+    ctx.fillStyle = "yellow";
+    ctx.fillRect(287, 25, inventoryLength, 13);
+
+    // Numbers of coins
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText(this.gray, 475, 40);
+    ctx.fillText(this.yellow, 585, 40);
+    ctx.fillText(this.blue, 695, 40);
+  }
+
   updateCollect = () => {
     this.updatePlayerSpeed();
     this.infinitewalk();
@@ -1167,9 +1216,10 @@ class Game {
       block.update();
       block.draw(ctx, this.mouse);
     }
-
     // Update and draw the player
+    this.displayCastle();
     this.player.update();
+    this.showHUD();
   };
 
   updateCannon = () => {
@@ -1317,8 +1367,10 @@ class Game {
         this.player.jump();
       }
       if (e.key == "e") {
-        this.switchGame();
-        this.playerReady = true;
+        if (this.player.playerOffset < -540 && this.player.playerOffset > -700) {
+          this.switchGame();
+          this.playerReady = true;
+        }
       }
       if (e.key == "q") {
         this.dropLastBlock();
