@@ -10,6 +10,22 @@ let edit_mode = false;
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
+
+addEventListener("keydown", (e) => {
+  if (e.key == "e") {
+    edit();
+  }
+  if (e.key == "s") {
+    save();
+  }
+  if (e.key == "l") {
+    load();
+  }
+  if (e.key == "u") {
+    unload();
+  }
+});
+
 class Grid {
   constructor(x, y, color) {
     this.x = x;
@@ -316,7 +332,7 @@ function edit() {
         img_nr--;
       }
       // Display the current img
-      grid = grids[0][0];
+      const grid = grids[0][0];
       ctx.clearRect(grid.x, grid.y, grid.width, grid.height);
       let current_img = `img/tiles/sheet_${img_nr}.gif`;
       grid.img.src = current_img;
@@ -954,6 +970,7 @@ class Game {
     this.rightx = this.player.x + canvas.width / 2;
     this.gravity = 0.05;
     this.pressed_keys = { a: false, d: false, space: false };
+    this.currentTexturenr = 0;
 
     // Background images (10)
     this.bg1 = new Image();
@@ -1020,7 +1037,13 @@ class Game {
   }
 
   getRandomTexture() {
-    return Math.floor(Math.random() * 2) + 1;
+    while (true) {
+      const random = randomIntFromRange(1, 3);
+      if (random != this.currentTexturenr) {
+        this.currentTexturenr = random;
+        return random;
+      }
+    }
   }
 
   infinitewalk() {
@@ -1419,6 +1442,7 @@ for (let i = 1; i < 8; i++) {
 imagePaths.push("img/cannon/wheel.gif");
 
 const game = new Game();
+window.game = game;
 
 // Preload images and start the game
 preloadImages(imagePaths)
