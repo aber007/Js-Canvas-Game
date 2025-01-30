@@ -10,21 +10,20 @@ let edit_mode = false;
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
-
-addEventListener("keydown", (e) => {
-  if (e.key == "e") {
-    edit();
-  }
-  if (e.key == "s") {
-    save();
-  }
-  if (e.key == "l") {
-    load();
-  }
-  if (e.key == "u") {
-    unload();
-  }
-});
+// addEventListener("keydown", (e) => {
+//   if (e.key == "e") {
+//     edit();
+//   }
+//   if (e.key == "s") {
+//     save();
+//   }
+//   if (e.key == "l") {
+//     load();
+//   }
+//   if (e.key == "u") {
+//     unload();
+//   }
+// });
 
 class Grid {
   constructor(x, y, color) {
@@ -284,10 +283,9 @@ function edit() {
       let current_img = `img/tiles/sheet_${img_nr}.gif`;
 
       let save_img2_src = "";
-      if (grid.img.src.split("/")[3] != "index.htm") {
-        save_img2_src = "img/tiles/" + grid.img.src.split("/").pop();
-        grid.img.src = current_img;
-        console.log("Grid has tile");
+      
+      if(grid.img.src.includes("sheet_")) {
+        save_img2_src ="img/tiles/" + grid.img.src.split("/").pop();
       }
 
       grid.img.src = current_img;
@@ -1183,7 +1181,12 @@ class Game {
   displayCastle() {
     // Draw black background behind castle
     ctx.fillStyle = "black";
-    ctx.fillRect(this.player.x - canvas.width / 2 + 15, -32, this.tower.width * 5, this.tower.height * 6);
+    ctx.fillRect(
+      this.player.x - canvas.width / 2 + 15,
+      -32,
+      this.tower.width * 5,
+      this.tower.height * 6
+    );
 
     // Display the castle
     ctx.drawImage(
@@ -1226,11 +1229,17 @@ class Game {
     this.updateBackground();
     for (let row of grids) {
       for (let grid of row) {
-        if (
-          grid.x + grid.width > this.player.inverseX - canvas.width / 2 &&
-          grid.x < this.player.inverseX + canvas.width / 2
-        ) {
-          grid.draw(this.player.x - canvas.width / 2);
+        try {
+          if (
+            grid.x + grid.width > this.player.inverseX - canvas.width / 2 &&
+            grid.x < this.player.inverseX + canvas.width / 2
+          ) {
+            grid.draw(this.player.x - canvas.width / 2);
+          }
+        } catch (e) {
+          console.log(e);
+          console.log(grid);
+          console.log(grids);
         }
       }
     }
@@ -1342,12 +1351,24 @@ class Game {
     }
   }
 
+  removeListeners() {
+    removeEventListener("keydown", () => {});
+    removeEventListener("keyup", () => {});
+    removeEventListener("mousemove", () => {});
+    removeEventListener("mousedown", () => {});
+    removeEventListener("mouseup", () => {});
+    removeEventListener("contextmenu", () => {});
+  }
+
   playCannon() {
     unload();
+    this.removeListeners();
     this.x = canvas.width / 2;
 
     this.blocks = [];
     this.towerDefense = true;
+    // Remove previous event listeners
+
     // Plays the tower defence game
     addEventListener("mousemove", (event) => {
       this.mouse.x = event.clientX;
@@ -1374,6 +1395,7 @@ class Game {
 
   playCollect() {
     unload();
+    this.removeListeners();
     this.towerDefense = false;
     // Plays the collection game
     addEventListener("keydown", (e) => {
@@ -1390,7 +1412,10 @@ class Game {
         this.player.jump();
       }
       if (e.key == "e") {
-        if (this.player.playerOffset < -540 && this.player.playerOffset > -700) {
+        if (
+          this.player.playerOffset < -540 &&
+          this.player.playerOffset > -700
+        ) {
           this.switchGame();
           this.playerReady = true;
         }
