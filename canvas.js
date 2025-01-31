@@ -283,9 +283,9 @@ function edit() {
       let current_img = `img/tiles/sheet_${img_nr}.gif`;
 
       let save_img2_src = "";
-      
-      if(grid.img.src.includes("sheet_")) {
-        save_img2_src ="img/tiles/" + grid.img.src.split("/").pop();
+
+      if (grid.img.src.includes("sheet_")) {
+        save_img2_src = "img/tiles/" + grid.img.src.split("/").pop();
       }
 
       grid.img.src = current_img;
@@ -679,6 +679,8 @@ class Enemy extends Block {
     this.y = randomIntFromRange(128, canvas.height - 128);
     this.x = canvas.width + 64;
 
+    this.hitBy = [];
+
     this.hp = 3;
 
     setTimeout(() => {
@@ -745,15 +747,18 @@ class Enemy extends Block {
         this.y < ball.y + ball.height &&
         this.y + this.height > ball.y
       ) {
-        this.hp -= 1;
-        if (ball.special != "pierce") {
-          ball.killCannonBall();
-        }
-        if (this.hp <= 0) {
-          // Remove self from the enemies array
-          this.animateDeath();
-        } else {
-          this.animateHit();
+        if (this.hitBy.includes(ball) == false) {
+          this.hp -= 1;
+          this.hitBy.push(ball);
+          if (ball.special != "pierce") {
+            ball.killCannonBall();
+          }
+          if (this.hp <= 0) {
+            // Remove self from the enemies array
+            this.animateDeath();
+          } else {
+            this.animateHit();
+          }
         }
       }
     }
@@ -812,6 +817,8 @@ class CannonBall extends Block {
       }
 
       this.draw(ctx);
+    } else {
+      this.killCannonBall();
     }
   }
   killCannonBall() {
@@ -969,6 +976,7 @@ class Game {
     this.gravity = 0.05;
     this.pressed_keys = { a: false, d: false, space: false };
     this.currentTexturenr = 0;
+    this.switchOnce = true;
 
     // Background images (10)
     this.bg1 = new Image();
@@ -1267,22 +1275,24 @@ class Game {
     for (let enemy of this.enemies) {
       enemy.update();
     }
+    console.log("Round: " + this.round);
+    
 
     if (this.playerReady) {
       this.round += 1;
       // Spawn enemies
       this.playerReady = false;
-      for (let i = 0; i < this.round * Math.round(Math.random() * 3 + 1); i++) {
+      for (let i = 0; i < randomIntFromRange(1*this.round,3*this.round); i++) {
         this.enemies.push(
           new Enemy(canvas.width - 128, canvas.height / 2, 32, 64, this)
         );
       }
     }
+    console.log("Enemies: " + this.enemies.length);
     for (let enemy of this.enemies) {
       enemy.update();
     }
     if (this.enemies.length == 0) {
-      this.round += 1;
       this.switchGame();
     }
   };
@@ -1344,7 +1354,9 @@ class Game {
   };
 
   switchGame() {
+    console.log("Switching game");
     if (this.towerDefense) {
+      this.enemies = [];
       this.playCollect();
     } else {
       this.playCannon();
@@ -1411,17 +1423,19 @@ class Game {
         this.pressed_keys.space = true;
         this.player.jump();
       }
+      if (e.key == "q") {
+        this.dropLastBlock();
+      }
       if (e.key == "e") {
         if (
           this.player.playerOffset < -540 &&
-          this.player.playerOffset > -700
+          this.player.playerOffset > -700 &&
+          this.switchOnce
         ) {
+          this.switchOnce = false;
           this.switchGame();
           this.playerReady = true;
         }
-      }
-      if (e.key == "q") {
-        this.dropLastBlock();
       }
     });
     addEventListener("keyup", (e) => {
@@ -1433,6 +1447,9 @@ class Game {
       }
       if (e.key == " ") {
         this.pressed_keys.space = false;
+      }
+      if (e.key == "e") {
+        this.switchOnce = true;
       }
     });
 
