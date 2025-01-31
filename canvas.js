@@ -851,7 +851,7 @@ class Cannon {
 
     this.specialCooldown = 0;
     this.specialMaxCooldown = 10;
-    this.specialDamage = 1;
+    this.specialDamage = 2;
     this.specialType = "pierce";
 
     this.normalCooldown = 0;
@@ -977,6 +977,7 @@ class Game {
     this.pressed_keys = { a: false, d: false, space: false };
     this.currentTexturenr = 0;
     this.switchOnce = true;
+    this.gameHasBeenSwitched = false;
 
     // Background images (10)
     this.bg1 = new Image();
@@ -1260,6 +1261,7 @@ class Game {
     this.displayCastle();
     this.player.update();
     this.showHUD();
+    this.gameHasBeenSwitched = true;
   };
 
   updateCannon = () => {
@@ -1276,13 +1278,17 @@ class Game {
       enemy.update();
     }
     console.log("Round: " + this.round);
-    
 
     if (this.playerReady) {
       this.round += 1;
+      this.gameHasBeenSwitched = true;
       // Spawn enemies
       this.playerReady = false;
-      for (let i = 0; i < randomIntFromRange(1*this.round,3*this.round); i++) {
+      for (
+        let i = 0;
+        i < randomIntFromRange(1 * this.round, 3 * this.round);
+        i++
+      ) {
         this.enemies.push(
           new Enemy(canvas.width - 128, canvas.height / 2, 32, 64, this)
         );
@@ -1346,7 +1352,6 @@ class Game {
 
     // Request the next frame
     if (this.towerDefense) {
-      console.log("Switching to tower defense");
       requestAnimationFrame(this.animateCannon);
     } else {
       requestAnimationFrame(this.animateCollect);
@@ -1355,11 +1360,14 @@ class Game {
 
   switchGame() {
     console.log("Switching game");
-    if (this.towerDefense) {
-      this.enemies = [];
-      this.playCollect();
-    } else {
-      this.playCannon();
+    if (game.gameHasBeenSwitched) {
+      game.gameHasBeenSwitched = false;
+      if (this.towerDefense) {
+        this.enemies = [];
+        this.playCollect();
+      } else {
+        this.playCannon();
+      }
     }
   }
 
