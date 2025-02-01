@@ -501,7 +501,7 @@ class Player {
     }
   }
   redeemCoins() {
-    if (this.x >= 765) {
+    if (this.playerOffset < 0) {
       if (game.inventory.includes("yellow")) {
         game.yellow += 1;
         game.weight -= 1;
@@ -1072,6 +1072,7 @@ class Game {
       }
     }
   }
+
 
   dropLastBlock() {
     // Drop the last block in the inventory
