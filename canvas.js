@@ -380,15 +380,14 @@ function randomIntFromRange(min, max) {
 }
 
 class Player {
-  constructor() {
+  constructor(canvas) {
     this.movement_direction = 0;
+    this.canvas = canvas
 
     // X and Y position of the player camera
-    this.x = canvas.width / 2;
+    this.x = this.canvas.width / 2;
     this.inverseX = canvas.width / 2;
     this.y = canvas.height / 2;
-
-    this.money = 0;
 
     this.move_speed = 6;
     this.jump_speed = 13;
@@ -411,7 +410,7 @@ class Player {
     this.rightCollision = false;
     this.lastgrid = null;
   }
-  show_player(keepLastFrame = false) {
+  show_player() {
     // Draw on load
     ctx.drawImage(
       this.player_img,
@@ -960,11 +959,81 @@ class Cannon {
   }
 }
 
+class Upgrades {
+  constructor() {
+    this.upgrades = {};
+    this.upgrades["damage"] = {
+      name: "Damage",
+      level: 0,
+      costgray: 1,
+      constyellow: 0,
+      costblue: 0,
+      maxLevel: 10,
+      description: "Increase damage by 1",
+    };
+    this.upgrades["attack_speed"] = {
+      name: "Attack Speed",
+      level: 0,
+      costgray:0 ,
+      constyellow: 1,
+      costblue: 0,
+      maxLevel: 10,
+      description: "Increase attack speed by 1",
+    };
+    this.upgrades["special"] = {
+      name: "Special",
+      level: 0,
+      costgray: 0,
+      constyellow: 1,
+      costblue: 2,
+      maxLevel: 1,
+      description: "Unlock special attack",
+    };
+    this.upgrades["special_damage"] = {
+      name: "Special Damage",
+      level: 0,
+      costgray: 0,
+      constyellow: 1,
+      costblue: 0,
+      maxLevel: 10,
+      description: "Increase special damage by 1",
+    };
+  }
+  showUpgradeShop() {
+    console.log("Showing upgrade shop");
+    // Make background white
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText("Upgrade Shop", 32, 32);
+    let y = 64;
+    for (let upgrade in this.upgrades) {
+      console.log(upgrade);
+      const upgradeData = this.upgrades[upgrade];
+      ctx.fillText(
+        `${upgradeData.name}: ${upgradeData.level}/${upgradeData.maxLevel}`,
+        32,
+        y
+      );
+      y += 32;
+      ctx.fillText(`${upgradeData.description}`, 32, y);
+      y += 32;
+      ctx.fillText(
+        `Cost: ${upgradeData.costgray} gray, ${upgradeData.constyellow} yellow, ${upgradeData.costblue} blue`,
+        32,
+        y
+      );
+      y += 32;
+    }
+  }
+}
+
 class Game {
   constructor() {
     this.towerDefense = false;
 
-    this.player = new Player();
+    this.player = new Player(canvas);
     this.cannon = new Cannon();
     this.lastFrameTime = 0; // Track the last frame timestamp
     this.fpsInterval = 1000 / 60; // Desired time per frame (60 FPS)
@@ -978,6 +1047,8 @@ class Game {
     this.currentTexturenr = 0;
     this.switchOnce = true;
     this.gameHasBeenSwitched = false;
+
+    this.upgrades = new Upgrades();
 
     // Background images (10)
     this.bg1 = new Image();
@@ -1024,6 +1095,8 @@ class Game {
     this.weight = 0;
     this.weightMultiplier = 1;
     this.inventory = [];
+
+    this.upgradeShopVisible = false;
 
     // Img settints
     this.img_scale = 6;
@@ -1072,7 +1145,6 @@ class Game {
       }
     }
   }
-
 
   dropLastBlock() {
     // Drop the last block in the inventory
@@ -1262,6 +1334,9 @@ class Game {
     this.displayCastle();
     this.player.update();
     this.showHUD();
+    if (this.upgradeShopVisible) {
+      this.upgrades.showUpgradeShop();
+    }
     this.gameHasBeenSwitched = true;
   };
 
@@ -1299,6 +1374,7 @@ class Game {
     for (let enemy of this.enemies) {
       enemy.update();
     }
+    this.showHUD();
     if (this.enemies.length == 0) {
       this.switchGame();
     }
@@ -1445,6 +1521,9 @@ class Game {
           this.switchGame();
           this.playerReady = true;
         }
+      }
+      if (e.key == "r") {
+        this.upgradeShopVisible = !this.upgradeShopVisible;
       }
     });
     addEventListener("keyup", (e) => {
