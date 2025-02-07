@@ -1,6 +1,9 @@
 console.log("canvas.js loaded");
 let canvas = document.querySelector("canvas");
 
+import { Player } from "./Player.js";
+import { Upgrades } from "./Upgrades.js";
+
 canvas.width = 768 * 2;
 canvas.height = 512 * 1.5;
 
@@ -90,18 +93,6 @@ class Grid {
 }
 
 // Create a 2D array for grids
-let grids = [];
-for (let j = 0; j < 8; j++) {
-  // Rows
-  let row = []; // Create a new row
-  for (let i = 0; i < 12; i++) {
-    // Columns
-    let x = i * 32 * 4;
-    let y = j * 32 * 4;
-    row.push(new Grid(x, y, "lightblue")); // Add each Grid to the current row
-  }
-  grids.push(row); // Add the row to the grids array
-}
 
 // Edit mode
 let savefile = {};
@@ -123,7 +114,7 @@ function unload() {
   // Clear the canvas section and redraw the default grid
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   savefile = {}; // Clear the savefile object
-  // Clear the grids array
+  // Clear the  this.grids array
   grids = [];
   for (let j = 0; j < 8; j++) {
     // Rows
@@ -183,7 +174,7 @@ function load(texture_nr = null, offset = 0) {
 function applyTextureData(data, offset) {
   for (let key in data) {
     let [row, col] = key.split(",").map(Number); // Parse grid coordinates
-    let grid = grids[row][col + offset];
+    let grid = game.grids[row][col + offset];
     if (grid) {
       grid.img.src = data[key].img || "";
       grid.img.onload = () => grid.draw();
@@ -201,17 +192,17 @@ function applyTextureData(data, offset) {
       grid.img2.src = data[key].img2 || "";
       grid.collidable = data[key].collidable || false;
       grid.walkable = data[key].walkable || true;
-      grids[row][col + offset] = grid;
+      game.grids[row][col + offset] = grid;
 
       // Get longest row
       let longest_row = 0;
-      for (let row of grids) {
+      for (let row of game.grids) {
         if (row.length > longest_row) {
           longest_row = row.length;
         }
       }
       // Add new empty grids to rows that are shorter
-      for (let row of grids) {
+      for (let row of game.grids) {
         while (row.length < longest_row) {
           let x = row.length * 32 * 4;
           let y = row[0].y;
@@ -279,7 +270,7 @@ function edit() {
       if (e.button != 0) return; // Only left
       let x = e.clientX - canvas.getBoundingClientRect().left;
       let y = e.clientY - canvas.getBoundingClientRect().top;
-      let grid = grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
+      let grid = game.grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
       let current_img = `img/tiles/sheet_${img_nr}.gif`;
 
       let save_img2_src = "";
@@ -308,7 +299,7 @@ function edit() {
       e.preventDefault(); // Prevent the default context menu
       let x = e.clientX - canvas.getBoundingClientRect().left;
       let y = e.clientY - canvas.getBoundingClientRect().top;
-      let grid = grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
+      let grid = game.grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
 
       grid.img.src = "";
       grid.img2.src = "";
@@ -330,7 +321,7 @@ function edit() {
         img_nr--;
       }
       // Display the current img
-      const grid = grids[0][0];
+      const grid = game.grids[0][0];
       ctx.clearRect(grid.x, grid.y, grid.width, grid.height);
       let current_img = `img/tiles/sheet_${img_nr}.gif`;
       grid.img.src = current_img;
@@ -349,7 +340,7 @@ function edit() {
 }
 
 function showWalkable() {
-  for (let row of grids) {
+  for (let row of game.grids) {
     for (let grid of row) {
       if (grid.walkable) {
         grid.outline = "lightgreen";
@@ -362,7 +353,7 @@ function showWalkable() {
   }
 }
 function showCollidable() {
-  for (let row of grids) {
+  for (let row of game.grids) {
     for (let grid of row) {
       if (grid.collidable) {
         grid.outline = "red";
@@ -377,202 +368,6 @@ function showCollidable() {
 
 function randomIntFromRange(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-class Player {
-  constructor(canvas) {
-    this.movement_direction = 0;
-    this.canvas = canvas
-
-    // X and Y position of the player camera
-    this.x = this.canvas.width / 2;
-    this.inverseX = canvas.width / 2;
-    this.y = canvas.height / 2;
-
-    this.move_speed = 6;
-    this.jump_speed = 13;
-
-    this.playerOffset = -600;
-    this.playery = 0;
-
-    this.vx = 0;
-    this.vy = 0;
-    this.current_grid = null;
-    this.jump_height = 0;
-    this.player_img = new Image();
-    this.gravity = 0.5;
-    this.img_nr = 1;
-    this.img_rotation = "";
-    this.player_img.src = `img/player/${this.img_nr}${this.img_rotation}.gif`;
-
-    this.onGround = false;
-    this.leftCollision = false;
-    this.rightCollision = false;
-    this.lastgrid = null;
-  }
-  show_player() {
-    // Draw on load
-    ctx.drawImage(
-      this.player_img,
-      canvas.width / 2 + this.playerOffset,
-      this.y,
-      this.player_img.width * game.img_scale,
-      this.player_img.height * game.img_scale
-    );
-    if (this.movement_direction == 1) {
-      this.img_rotation = "";
-    } else if (this.movement_direction == -1) {
-      this.img_rotation = "-flip"; // If direction is left
-    }
-    this.player_img.src = `img/player/${this.img_nr}${this.img_rotation}.gif`;
-  }
-
-  move() {
-    // Update horizontal position
-    if (this.leftCollision && this.vx < 0) {
-      this.vx = 0;
-    } else if (this.rightCollision && this.vx > 0) {
-      this.vx = 0;
-    }
-    this.x += this.vx;
-    this.inverseX -= this.vx;
-
-    // Update vertical position
-    this.y += this.vy;
-  }
-
-  jump() {
-    // Jump logic
-    if (this.onGround) {
-      this.vy = -this.jump_speed;
-      this.onGround = false;
-      this.leftCollision = false;
-      this.rightCollision = false;
-    }
-  }
-  applyGravity() {
-    if (!this.onGround) {
-      this.vy += this.gravity;
-    } else {
-      this.vy = 0; // Reset vertical velocity when grounded
-    }
-  }
-  get_current_grid() {
-    // Get the current grid the player is on
-    let grid_x = Math.floor(this.inverseX / 32 / 4);
-    let grid_y = Math.floor(this.y / 32 / 4);
-    try {
-      this.current_grid = grids[grid_y + 1][grid_x];
-      this.nextGrid = grids[grid_y + 1][grid_x + 1];
-      this.gridUnder = grids[grid_y + 2][grid_x];
-    } catch (e) {
-      // Do nothing.
-    }
-    // Get the grids position from the left side of the canvas
-  }
-  checkCollisionWithBlock() {
-    // Check if the player is colliding with block
-    for (const block of game.blocks) {
-      if (
-        this.inverseX - canvas.width / 2 + this.player_img.width * 3 <
-          block.x + block.width &&
-        this.inverseX - canvas.width / 2 + this.player_img.width * 3 >
-          block.x &&
-        this.y < block.y + block.height &&
-        this.y + this.player_img.height > block.y - 128
-      ) {
-        // Add value to score
-        if (block.canBePickedUp) {
-          if (block.color === "yellow") {
-            game.inventory.push("yellow");
-          } else if (block.color === "gray") {
-            game.inventory.push("gray");
-          } else if (block.color === "blue") {
-            game.inventory.push("blue");
-          }
-          game.weight += 1;
-        }
-        block.canBePickedUp = false;
-        // Delete block from blocks
-        const index = game.blocks.indexOf(block);
-        game.blocks.splice(index, 1);
-      }
-    }
-  }
-  redeemCoins() {
-    if (this.playerOffset < 0) {
-      if (game.inventory.includes("yellow")) {
-        game.yellow += 1;
-        game.weight -= 1;
-        game.inventory.splice(game.inventory.indexOf("yellow"), 1);
-      }
-      if (game.inventory.includes("gray")) {
-        game.gray += 1;
-        game.weight -= 1;
-        game.inventory.splice(game.inventory.indexOf("gray"), 1);
-      }
-      if (game.inventory.includes("blue")) {
-        game.blue += 1;
-        game.weight -= 1;
-        game.inventory.splice(game.inventory.indexOf("blue"), 1);
-      }
-    }
-  }
-
-  check_collision() {
-    if (this.current_grid) {
-      // Handle walkable tiles (platform-like behavior)
-      const nextGridOffset = Math.abs(this.nextGrid.x - this.inverseX);
-      if (
-        (this.current_grid.walkable && this.vy > 0) || // Falling downward
-        (this.vy > 0 &&
-          this.nextGrid.walkable &&
-          nextGridOffset < this.player_img.width * game.img_scale)
-      ) {
-        this.vy = 0;
-        this.y = this.current_grid.y - this.player_img.height * game.img_scale;
-        this.onGround = true;
-        this.leftCollision = false;
-        this.rightCollision = false;
-        return true; // Exit early since we landed
-      }
-      if (
-        !this.gridUnder.walkable &&
-        nextGridOffset > this.player_img.width * game.img_scale
-      ) {
-        this.onGround = false;
-      }
-
-      // Handle collidable tiles (full collision)
-      if (this.nextGrid.collidable && !this.leftCollision) {
-        //Left collision
-        if (this.inverseX + this.player_img.width > this.nextGrid.x - 32 * 2) {
-          this.vx = 0;
-          this.leftCollision = true;
-        }
-        return true;
-      }
-      if (this.current_grid.collidable && !this.rightCollision) {
-        //Right collision
-        if (this.inverseX < this.current_grid.x + this.current_grid.width) {
-          this.vx = 0;
-          this.rightCollision = true;
-        }
-        return true;
-      }
-    }
-  }
-
-  update() {
-    // Update the player's position
-    this.get_current_grid();
-    const yOffset = this.check_collision();
-    this.checkCollisionWithBlock();
-    this.applyGravity();
-    this.move();
-    this.show_player();
-    this.redeemCoins();
-  }
 }
 
 class Block {
@@ -634,8 +429,8 @@ class Block {
     let grid_x = Math.floor((this.x - this.width) / 32 / 4);
     let grid_y = Math.floor((this.y - this.height) / 32 / 4);
     try {
-      this.current_grid = grids[grid_y + 1][grid_x];
-      this.nextGrid = grids[grid_y + 1][grid_x + 1];
+      this.current_grid =  game.grids[grid_y + 1][grid_x];
+      this.nextGrid =  game.grids[grid_y + 1][grid_x + 1];
     } catch (e) {
       // Do nothing.
     }
@@ -959,87 +754,17 @@ class Cannon {
   }
 }
 
-class Upgrades {
-  constructor() {
-    this.upgrades = {};
-    this.upgrades["damage"] = {
-      name: "Damage",
-      level: 0,
-      costgray: 1,
-      constyellow: 0,
-      costblue: 0,
-      maxLevel: 10,
-      description: "Increase damage by 1",
-    };
-    this.upgrades["attack_speed"] = {
-      name: "Attack Speed",
-      level: 0,
-      costgray:0 ,
-      constyellow: 1,
-      costblue: 0,
-      maxLevel: 10,
-      description: "Increase attack speed by 1",
-    };
-    this.upgrades["special"] = {
-      name: "Special",
-      level: 0,
-      costgray: 0,
-      constyellow: 1,
-      costblue: 2,
-      maxLevel: 1,
-      description: "Unlock special attack",
-    };
-    this.upgrades["special_damage"] = {
-      name: "Special Damage",
-      level: 0,
-      costgray: 0,
-      constyellow: 1,
-      costblue: 0,
-      maxLevel: 10,
-      description: "Increase special damage by 1",
-    };
-  }
-  showUpgradeShop() {
-    console.log("Showing upgrade shop");
-    // Make background white
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "black";
-    ctx.font = "20px Arial";
-    ctx.fillText("Upgrade Shop", 32, 32);
-    let y = 64;
-    for (let upgrade in this.upgrades) {
-      console.log(upgrade);
-      const upgradeData = this.upgrades[upgrade];
-      ctx.fillText(
-        `${upgradeData.name}: ${upgradeData.level}/${upgradeData.maxLevel}`,
-        32,
-        y
-      );
-      y += 32;
-      ctx.fillText(`${upgradeData.description}`, 32, y);
-      y += 32;
-      ctx.fillText(
-        `Cost: ${upgradeData.costgray} gray, ${upgradeData.constyellow} yellow, ${upgradeData.costblue} blue`,
-        32,
-        y
-      );
-      y += 32;
-    }
-  }
-}
-
 class Game {
-  constructor() {
+  constructor(grids) {
     this.towerDefense = false;
 
-    this.player = new Player(canvas);
+    this.player = new Player(canvas, ctx, this);
     this.cannon = new Cannon();
+    this.grids = grids;
     this.lastFrameTime = 0; // Track the last frame timestamp
     this.fpsInterval = 1000 / 60; // Desired time per frame (60 FPS)
     this.currentFrame = 0;
 
-    this.leftx = 0;
     this.leftx = this.player.x - canvas.width / 2;
     this.rightx = this.player.x + canvas.width / 2;
     this.gravity = 0.05;
@@ -1048,7 +773,7 @@ class Game {
     this.switchOnce = true;
     this.gameHasBeenSwitched = false;
 
-    this.upgrades = new Upgrades();
+    this.upgrades = new Upgrades(canvas, ctx);
 
     // Background images (10)
     this.bg1 = new Image();
@@ -1129,10 +854,10 @@ class Game {
   infinitewalk() {
     // Get the rightmost and leftmost grid
 
-    let rightmost = grids[0][grids[0].length - 1].x;
+    let rightmost = this.grids[0][this.grids[0].length - 1].x;
 
     if (this.rightx >= rightmost && this.player.movement_direction == 1) {
-      load(this.getRandomTexture(), grids[0].length);
+      load(this.getRandomTexture(), this.grids[0].length);
     }
   }
 
@@ -1309,7 +1034,7 @@ class Game {
     // Clear and redraw only visible grids
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     this.updateBackground();
-    for (let row of grids) {
+    for (let row of this.grids) {
       for (let grid of row) {
         try {
           if (
@@ -1321,7 +1046,7 @@ class Game {
         } catch (e) {
           console.log(e);
           console.log(grid);
-          console.log(grids);
+          console.log(this.grids);
         }
       }
     }
@@ -1343,7 +1068,7 @@ class Game {
   updateCannon = () => {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let row of grids) {
+    for (let row of  this.grids) {
       for (let grid of row) {
         grid.draw(this.player.x - canvas.width / 2);
       }
@@ -1571,7 +1296,20 @@ for (let i = 1; i < 8; i++) {
 }
 imagePaths.push("img/cannon/wheel.gif");
 
-const game = new Game();
+let grids = [];
+for (let j = 0; j < 8; j++) {
+  // Rows
+  let row = []; // Create a new row
+  for (let i = 0; i < 12; i++) {
+    // Columns
+    let x = i * 32 * 4;
+    let y = j * 32 * 4;
+    row.push(new Grid(x, y, "lightblue")); // Add each Grid to the current row
+  }
+  grids.push(row); // Add the row to the grids array
+}
+
+const game = new Game(grids);
 window.game = game;
 
 // Preload images and start the game
