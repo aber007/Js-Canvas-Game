@@ -30,7 +30,6 @@ export class Player {
     this.leftCollision = false;
     this.rightCollision = false;
     this.lastgrid = null;
-    console.log(this.game);
   }
   show_player() {
     // Draw on load
