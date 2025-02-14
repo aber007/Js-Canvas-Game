@@ -6,8 +6,8 @@ import { Upgrades } from "./Upgrades.js";
 import { Block } from "./objects.js";
 import { CannonBall, Enemy } from "./objects.js";
 
-canvas.width = 768 * 2;
-canvas.height = 512 * 1.5;
+canvas.width = 1536;
+canvas.height = 768;
 
 let img_nr = 2;
 let edit_mode = false;
@@ -571,7 +571,7 @@ class Game {
     this.inventory = [];
 
     this.upgradeShopVisible = false;
-    this.maxTimer = 45 * 60; //Seconds times framerate
+    this.maxTimer = 60 * 60; //Seconds times framerate
     this.timer = 0;
 
     // Img settints
@@ -686,6 +686,21 @@ class Game {
   }
 
   updateBackground() {
+    handleWeatherEvents = (event) => {
+      if (event == 0) {
+        // Normal
+        console.log("Clear sky");
+      } else if (event == 1) {
+        // Rain
+        console.log("Rain");
+      } else if (event == 2) {
+        // Mist
+        console.log("Mist");
+      } else if (event == 3) {
+        // Thunder
+        console.log("Thunder");
+      }
+    };
     // Show the images in the bg folder as background and each move at different speed
     const bgImages = [
       this.bg1,
@@ -723,6 +738,8 @@ class Game {
         );
       }
 
+      // Add hue depending on time left
+
       // Draw the image multiple times to cover the entire canvas width
       for (let j = -1; j <= canvas.width / img.width + 1; j++) {
         ctx.drawImage(
@@ -734,6 +751,23 @@ class Game {
         );
       }
     }
+    handleWeatherEvents(randomIntFromRange(0, 3));
+
+    let red = Math.floor((this.timer / this.maxTimer) * 255);
+    let green = 80
+    let blue = Math.floor((1-this.timer / this.maxTimer) * 255);
+
+    // Background hue
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = `rgb(${red},${green},${blue})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1;
+
+    // Overlay hue
+    const overlayhue = document.getElementsByClassName("overlayhue")[0];
+    const oppacity = Math.max(0, 0.4 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5);
+    console.log(oppacity);
+    overlayhue.style.backgroundColor = `rgb(${red},${green},${blue}, ${oppacity})`;
   }
 
   displayCastle() {

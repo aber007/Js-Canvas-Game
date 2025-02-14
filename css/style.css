@@ -1,8 +1,19 @@
 body {
     background-color: black;
+    overflow-y: hidden;
 }
 canvas {
+    z-index: 1;
     margin: 0 auto;
     display: flex;
     background-color: darkslategray;
+}
+.overlayhue {
+    position: relative;
+    z-index: 2;
+    width: 1536px;
+    height: 704px;
+    top: -704px;
+    margin: 0 auto;
+    background-color: rgb(189 177 194, 0.3);
 }
