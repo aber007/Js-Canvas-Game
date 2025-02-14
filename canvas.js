@@ -571,9 +571,13 @@ class Game {
     this.inventory = [];
 
     this.upgradeShopVisible = false;
-    this.maxTimer = 60 * 60; //Seconds times framerate
+    this.maxTimer = 20 * 60; //Seconds times framerate
     this.timer = 0;
     this.weather = 0;
+
+    this.rainDrops = [];
+    this.maxRainDrops = 100;
+    this.allowLightning = false;
 
     // Img settints
     this.img_scale = 6;
@@ -688,53 +692,96 @@ class Game {
 
   updateBackground() {
     const handleWeatherEvents = (event) => {
+      let red = 0;
+      let green = 0;
+      let blue = 0;
+      let front_red = 0;
+      let front_green = 0;
+      let front_blue = 0;
+      let oppacity = 0.5;
+      this.allowLightning = false;
+
+      const drawRain = () => {
+        ctx.strokeStyle = "rgba(174,194,224,0.5)";
+        ctx.lineWidth = 1;
+        ctx.lineCap = "round";
+        for (let drop of this.rainDrops) {
+          ctx.beginPath();
+          ctx.moveTo(drop.x + this.player.x - canvas.width / 2, drop.y);
+          ctx.lineTo(drop.x + this.player.x - canvas.width / 2, drop.y + drop.length);
+          ctx.stroke();
+        }
+      }
+      
+      const updateRain = (maxRainDrops) => {
+        while (this.rainDrops.length < maxRainDrops) {
+          this.rainDrops.push({
+            x: (Math.random() * canvas.width * 2) - canvas.width / 2,
+            y: Math.random() * canvas.height,
+            length: Math.random() * 20,
+            speed: Math.random() * 5 + 10,
+          });
+        }
+        for (let drop of this.rainDrops) {
+          drop.y += drop.speed;
+          if (drop.y > canvas.height-128) {
+            drop.y = -drop.length;
+            drop.x = ((Math.random() * canvas.width * 2) - canvas.width / 2) + this.player.inverseX - canvas.width / 2;
+          }
+        }
+      }
+
+      const animateRain = (maxRainDrops) => {
+        drawRain();
+        updateRain(maxRainDrops);
+      }
+
       if (event == 0) {
         // Normal
-        console.log("Clear sky");
-        let red = Math.min(150 ,Math.floor((this.timer / this.maxTimer) * 255));
-        let green = 80;
-        let blue = Math.max(50 , Math.floor((1 - this.timer / this.maxTimer) * 255));
+        red = Math.min(150 ,Math.floor((this.timer / this.maxTimer) * 255));
+        green = 80;
+        blue = Math.max(50 , Math.floor((1 - this.timer / this.maxTimer) * 255));
+        front_red = red;
+        front_green = green;
+        front_blue = blue;
+        oppacity = Math.max(0,0.4 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5);
     
-        // Background hue
-        ctx.globalAlpha = 0.4;
-        ctx.fillStyle = `rgb(${red},${green},${blue})`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.globalAlpha = 1;
-    
-        // Overlay hue
-        const overlayhue = document.getElementsByClassName("overlayhue")[0];
-        const oppacity = Math.max(
-          0,
-          0.4 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5
-        );
-        overlayhue.style.backgroundColor = `rgb(${red},${green},${blue}, ${oppacity})`;
+        
       } else if (event == 1) {
         // Rain
-        console.log("Rain");
+        oppacity = 0.1;
+        this.maxRainDrops = 300;
+        animateRain(this.maxRainDrops);
+
       } else if (event == 2) {
         // Mist
-        console.log("Mist");
-        let red = 189;
-        let green = 177;
-        let blue = 194;
-    
-        // Background hue
-        ctx.globalAlpha = 0.4;
-        ctx.fillStyle = `rgb(${red},${green},${blue})`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.globalAlpha = 1;
-    
-        // Overlay hue
-        const overlayhue = document.getElementsByClassName("overlayhue")[0];
-        const oppacity = Math.max(
-          0,
-          0.4 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5
-        );
-        overlayhue.style.backgroundColor = `rgb(${red},${green},${blue}, ${oppacity})`;
+        red = Math.min(150 ,Math.floor((this.timer / this.maxTimer) * 255));
+        green = 80;
+        blue = Math.max(50 , Math.floor((1 - this.timer / this.maxTimer) * 255));
+        front_red = 189;
+        front_green = 177;
+        front_blue = 194;
+
+        red = Math.min(150 ,Math.floor((this.timer / this.maxTimer) * 255));
+        green = 80;
+        blue = Math.max(50 , Math.floor((1 - this.timer / this.maxTimer) * 255));
+        oppacity = 0.5;
+
       } else if (event == 3) {
         // Thunder
-        console.log("Thunder");
+        this.maxRainDrops = 900;
+        animateRain(this.maxRainDrops);
+        this.allowLightning = true;
       }
+      // Background hue
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = `rgb(${red},${green},${blue})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 1;
+  
+      // Overlay hue
+      const overlayhue = document.getElementsByClassName("overlayhue")[0];
+      overlayhue.style.backgroundColor = `rgb(${front_red},${front_green},${front_blue}, ${oppacity})`;
     };
     // Show the images in the bg folder as background and each move at different speed
     const bgImages = [
@@ -751,6 +798,16 @@ class Game {
     ];
     const speeds = [1024, 512, 256, 128, 64, 32, 16, 8, 4, 2];
 
+    let doLightning = false;
+    const lightningX = randomIntFromRange(0, canvas.width - 256);
+    const lightningY = 0;
+    const lightningWidth = randomIntFromRange(500, 700);
+    const lightningHeight = canvas.height;
+    if (this.allowLightning && randomIntFromRange(1,400) === 1) {
+      doLightning = true;
+      // Set location and size of lightning
+    }
+
     for (let i = 0; i < bgImages.length; i++) {
       let img = bgImages[i];
       let speed = speeds[i];
@@ -758,11 +815,12 @@ class Game {
 
       // Show the creature
       if (
-        i == 7 &&
+        i === 7 &&
         x < -156 &&
         x > -555 &&
         (this.player.x > -5000 ||
           (this.player.x < -16000 && this.player.x > -19000))
+          && this.weather > 1
       ) {
         ctx.drawImage(
           this.bg11,
@@ -772,8 +830,10 @@ class Game {
           this.bg11.height
         );
       }
-
-      // Add hue depending on time left
+      if (doLightning) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${1.4 - 0.2*i})`;
+        ctx.fillRect(lightningX, lightningY, lightningWidth, lightningHeight);
+      }
 
       // Draw the image multiple times to cover the entire canvas width
       for (let j = -1; j <= canvas.width / img.width + 1; j++) {
