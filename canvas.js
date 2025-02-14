@@ -573,6 +573,7 @@ class Game {
     this.upgradeShopVisible = false;
     this.maxTimer = 60 * 60; //Seconds times framerate
     this.timer = 0;
+    this.weather = 0;
 
     // Img settints
     this.img_scale = 6;
@@ -686,16 +687,50 @@ class Game {
   }
 
   updateBackground() {
-    handleWeatherEvents = (event) => {
+    const handleWeatherEvents = (event) => {
       if (event == 0) {
         // Normal
         console.log("Clear sky");
+        let red = Math.min(150 ,Math.floor((this.timer / this.maxTimer) * 255));
+        let green = 80;
+        let blue = Math.max(50 , Math.floor((1 - this.timer / this.maxTimer) * 255));
+    
+        // Background hue
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = `rgb(${red},${green},${blue})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 1;
+    
+        // Overlay hue
+        const overlayhue = document.getElementsByClassName("overlayhue")[0];
+        const oppacity = Math.max(
+          0,
+          0.4 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5
+        );
+        overlayhue.style.backgroundColor = `rgb(${red},${green},${blue}, ${oppacity})`;
       } else if (event == 1) {
         // Rain
         console.log("Rain");
       } else if (event == 2) {
         // Mist
         console.log("Mist");
+        let red = 189;
+        let green = 177;
+        let blue = 194;
+    
+        // Background hue
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = `rgb(${red},${green},${blue})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 1;
+    
+        // Overlay hue
+        const overlayhue = document.getElementsByClassName("overlayhue")[0];
+        const oppacity = Math.max(
+          0,
+          0.4 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5
+        );
+        overlayhue.style.backgroundColor = `rgb(${red},${green},${blue}, ${oppacity})`;
       } else if (event == 3) {
         // Thunder
         console.log("Thunder");
@@ -751,23 +786,7 @@ class Game {
         );
       }
     }
-    handleWeatherEvents(randomIntFromRange(0, 3));
-
-    let red = Math.floor((this.timer / this.maxTimer) * 255);
-    let green = 80
-    let blue = Math.floor((1-this.timer / this.maxTimer) * 255);
-
-    // Background hue
-    ctx.globalAlpha = 0.5;
-    ctx.fillStyle = `rgb(${red},${green},${blue})`;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 1;
-
-    // Overlay hue
-    const overlayhue = document.getElementsByClassName("overlayhue")[0];
-    const oppacity = Math.max(0, 0.4 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5);
-    console.log(oppacity);
-    overlayhue.style.backgroundColor = `rgb(${red},${green},${blue}, ${oppacity})`;
+    handleWeatherEvents(this.weather);
   }
 
   displayCastle() {
@@ -879,8 +898,8 @@ class Game {
 
     for (let row of this.grids) {
       for (let grid of row) {
+        // Please ignore this line
         if (grid.x === 0 && grid.y === 640) {
-          // Please ignore this line
           grid.draw(this.player.x - canvas.width / 2);
         }
       }
@@ -1027,6 +1046,7 @@ class Game {
 
   playCollect() {
     unload();
+    this.weather = randomIntFromRange(0, 3);
     this.timer = this.maxTimer;
     this.removeListeners();
     this.towerDefense = false;
