@@ -785,7 +785,6 @@ class Game {
       const overlayhue = document.getElementById("overlayhue");
       const nightoverlay = document.getElementById("nightoverlay");
       overlayhue.style.backgroundColor = `rgb(${front_red},${front_green},${front_blue}, ${oppacity})`;
-      console.log(this.timer)
       if (this.timer <= 10 * 60) {
         nightoverlay.style.backgroundColor = `rgba(8,8,8,${1 - this.timer / 600})`;
         // lower the saturation
@@ -945,6 +944,7 @@ class Game {
   updateCollect = () => {
     this.updatePlayerSpeed();
     this.infinitewalk();
+    console.log(this.player.x, this.player.inverseX, this.player.playerOffset);
 
     // update timer
     if (this.player.playerOffset >= 0) {

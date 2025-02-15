@@ -145,14 +145,13 @@ export class Player {
       // Handle walkable tiles (platform-like behavior)
       const nextGridOffset = Math.abs(this.nextGrid.x - this.inverseX);
       if (
-        (this.current_grid.walkable && this.vy > 0) || // Falling downward
+        (this.current_grid.walkable && this.vy > 0 && this.y < this.current_grid.y) || // Falling downward
         (this.vy > 0 &&
           this.nextGrid.walkable &&
           nextGridOffset < this.player_img.width * this.game.img_scale)
       ) {
         this.vy = 0;
-        this.y =
-          this.current_grid.y - this.player_img.height * this.game.img_scale;
+        this.y = this.current_grid.y - this.player_img.height * this.game.img_scale;
         this.onGround = true;
         this.leftCollision = false;
         this.rightCollision = false;
