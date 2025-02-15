@@ -15,20 +15,20 @@ let edit_mode = false;
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
-// addEventListener("keydown", (e) => {
-//   if (e.key == "e") {
-//     edit();
-//   }
-//   if (e.key == "s") {
-//     save();
-//   }
-//   if (e.key == "l") {
-//     load();
-//   }
-//   if (e.key == "u") {
-//     unload();
-//   }
-// });
+addEventListener("keydown", (e) => {
+  if (e.key == "e") {
+    edit();
+  }
+  if (e.key == "s") {
+    save();
+  }
+  if (e.key == "l") {
+    load();
+  }
+  if (e.key == "u") {
+    unload();
+  }
+});
 
 class Grid {
   constructor(x, y, color) {
@@ -239,7 +239,7 @@ function edit() {
     let lastMouseY = 0; // Track the last mouse Y position
 
     // Track mouse movement over the canvas
-    canvas.addEventListener("mousemove", (e) => {
+    addEventListener("mousemove", (e) => {
       lastMouseX = e.clientX - canvas.getBoundingClientRect().left;
       lastMouseY = e.clientY - canvas.getBoundingClientRect().top;
     });
@@ -249,6 +249,8 @@ function edit() {
       // Calculate grid position based on the last mouse position
       let gridX = Math.floor(lastMouseY / 32 / 4);
       let gridY = Math.floor(lastMouseX / 32 / 4);
+      console.log(gridX, gridY);  
+      console.log(lastMouseX, lastMouseY);
 
       let grid = grids[gridX][gridY];
       if (!grid) return; // Ensure the grid cell exists
@@ -256,6 +258,7 @@ function edit() {
       // Toggle properties based on the key pressed
       if (e.key == "c") {
         grid.collidable = !grid.collidable;
+        console.log(savefile);
         savefile[grid.coord].collidable = grid.collidable;
         showCollidable();
         console.log("Collision is: " + grid.collidable);
@@ -516,7 +519,6 @@ class Game {
 
     this.leftx = this.player.x - canvas.width / 2;
     this.rightx = this.player.x + canvas.width / 2;
-    this.gravity = 0.05;
     this.pressed_keys = { a: false, d: false, space: false };
     this.currentTexturenr = 0;
     this.switchOnce = true;
@@ -571,7 +573,7 @@ class Game {
     this.inventory = [];
 
     this.upgradeShopVisible = false;
-    this.maxTimer = 20 * 60; //Seconds times framerate
+    this.maxTimer = 120 * 60; //Seconds times framerate
     this.timer = 0;
     this.weather = 0;
 
@@ -599,7 +601,7 @@ class Game {
 
   getRandomTexture() {
     while (true) {
-      const random = randomIntFromRange(1, 3);
+      const random = randomIntFromRange(1, 6);
       if (random != this.currentTexturenr) {
         this.currentTexturenr = random;
         return random;
@@ -780,8 +782,16 @@ class Game {
       ctx.globalAlpha = 1;
   
       // Overlay hue
-      const overlayhue = document.getElementsByClassName("overlayhue")[0];
+      const overlayhue = document.getElementById("overlayhue");
+      const nightoverlay = document.getElementById("nightoverlay");
       overlayhue.style.backgroundColor = `rgb(${front_red},${front_green},${front_blue}, ${oppacity})`;
+      console.log(this.timer)
+      if (this.timer <= 10 * 60) {
+        nightoverlay.style.backgroundColor = `rgba(8,8,8,${1 - this.timer / 600})`;
+        // lower the saturation
+      } else {
+        nightoverlay.style.backgroundColor = `rgba(8,8,8,0)`;
+      }
     };
     // Show the images in the bg folder as background and each move at different speed
     const bgImages = [
@@ -849,6 +859,35 @@ class Game {
     handleWeatherEvents(this.weather);
   }
 
+  displayTextBox(text, duration) {
+    const textBox = document.createElement("div");
+    textBox.style.position = "absolute";
+    textBox.style.width = "300px";
+    textBox.style.zIndex = "10";
+    textBox.style.top = "100px";
+    textBox.style.left = "50%";
+    textBox.style.padding = "40px";
+    textBox.style.transform = "translateX(-50%)";
+    textBox.style.padding = "10px";
+    textBox.style.backgroundColor = "rgba(234, 212, 170, 1)";
+    textBox.style.color = "black";
+    textBox.style.border = "1px solid rgba(184,111,80,1)";
+    textBox.style.borderRadius = "5px";
+    textBox.style.textAlign = "center";
+    textBox.style.zIndex = "1000";
+    textBox.style.fontSize = "20px";
+    textBox.style.fontFamily = "Pixelify Sans";
+    textBox.style.fontOpticalSizing = "auto";
+    textBox.style.whiteSpace = "pre-wrap";
+    textBox.innerText = text;
+
+    document.body.appendChild(textBox);
+
+    setTimeout(() => {
+      document.body.removeChild(textBox);
+    }, duration);
+  }
+
   displayCastle() {
     // Draw black background behind castle
     ctx.fillStyle = "black";
@@ -909,9 +948,19 @@ class Game {
 
     // update timer
     if (this.player.playerOffset >= 0) {
-      this.timer -= 1;
-      if (this.timer <= 0) {
-        this.timer = this.maxTimer;
+      if (this.timer <= 0 && !this.timeoutSet) {
+        this.displayTextBox("You fell asleep. A mysterious creature brought you back, but took all your coins.", 5000);
+        this.timeoutSet = true;
+        setTimeout(() => {
+          this.timer = this.maxTimer;
+          this.switchOnce = false;
+          this.switchGame();
+          this.playerReady = true;
+          this.timeoutSet = false;
+        }, 5000);
+        // Restart the collect game
+      } else if (this.timer > 0) {
+        this.timer -= 1;
       }
     }
 
@@ -964,6 +1013,7 @@ class Game {
         }
       }
     }
+    console.log(this.enemies);
 
     // Update and draw the enemies
     for (let enemy of this.enemies) {
@@ -1051,6 +1101,14 @@ class Game {
 
   switchGame() {
     console.log("Switching game");
+    const nightoverlay = document.getElementById("nightoverlay");
+    nightoverlay.style.backgroundColor = `rgba(8,8,8,0)`;
+    this.player.x = canvas.width / 2;
+    this.player.inverseX = canvas.width / 2;
+    this.player.y = canvas.height - 256;
+    this.player.playerOffset = -600;
+    this.player.playery = 0;
+
     if (game.gameHasBeenSwitched) {
       game.gameHasBeenSwitched = false;
       if (this.towerDefense) {
@@ -1072,6 +1130,7 @@ class Game {
   }
 
   playCannon() {
+    this.displayTextBox("Use the mouse to aim and left click or hold to shoot. Right click to use your special cannonball.", 5000);
     unload();
     this.removeListeners();
     this.x = canvas.width / 2;

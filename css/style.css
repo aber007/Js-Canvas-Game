@@ -8,12 +8,17 @@ canvas {
     display: flex;
     background-color: darkslategray;
 }
-.overlayhue {
+.overlay {
     position: relative;
     z-index: 2;
     width: 1536px;
     height: 704px;
     top: -704px;
     margin: 0 auto;
-    background-color: rgb(189 177 194, 0.3);
+    filter:grayscale(50%);
+}
+.night {
+    position: relative;
+    top: -1408px;
+    background-color: rgb(8, 8, 8, 0);
 }
