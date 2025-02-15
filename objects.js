@@ -1,6 +1,6 @@
 const randomIntFromRange = (min, max) => {
-    return Math.floor(Math.random() * (max - min + 1) + min);
-    };
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
 
 export class Block {
   constructor(x, y, width, height, color, elasticity = 0.8, playerNo = 0) {
@@ -63,8 +63,8 @@ export class Block {
     let grid_x = Math.floor((this.x - this.width) / 32 / 4);
     let grid_y = Math.floor((this.y - this.height) / 32 / 4);
     try {
-      this.current_grid =  game.grids[grid_y + 1][grid_x];
-      this.nextGrid =  game.grids[grid_y + 1][grid_x + 1];
+      this.current_grid = game.grids[grid_y + 1][grid_x];
+      this.nextGrid = game.grids[grid_y + 1][grid_x + 1];
     } catch (e) {
       // Do nothing.
     }
@@ -102,10 +102,11 @@ export class Enemy extends Block {
     this.color = "red";
     this.img_nr = 1;
     this.texture = new Image();
-    this.texture.src = `img/enemy/fly/fly${this.img_nr}.gif`;
+    this.texture.src = `./img/enemy/fly/fly${this.img_nr}.gif`;
     this.action = "fly";
     this.y = randomIntFromRange(128, this.canvas.height - 128);
     this.x = this.canvas.width + 64;
+    this.initalvx = randomIntFromRange(0.1, 0.24);
 
     this.hitBy = [];
 
@@ -134,7 +135,7 @@ export class Enemy extends Block {
       } else {
         this.img_nr = 1;
       }
-      this.texture.src = `img/enemy/fly/fly${this.img_nr}.gif`;
+      this.texture.src = `./img/enemy/fly/fly${this.img_nr}.gif`;
     }, 250);
   }
   animateHit() {
@@ -146,7 +147,7 @@ export class Enemy extends Block {
         this.img_nr = 1;
         clearInterval(this.hitAnimation);
       }
-      this.texture.src = `img/enemy/hit/hit${this.img_nr}.gif`;
+      this.texture.src = `./img/enemy/hit/hit${this.img_nr}.gif`;
     }, 200);
   }
 
@@ -163,7 +164,7 @@ export class Enemy extends Block {
         game.enemies.splice(index, 1);
         clearInterval(this.deathAnimation);
       }
-      this.texture.src = `img/enemy/die/die${this.img_nr}.gif`;
+      this.texture.src = `./img/enemy/die/die${this.img_nr}.gif`;
     }, 50);
   }
 
@@ -194,9 +195,8 @@ export class Enemy extends Block {
 
   update() {
     const vy = randomIntFromRange(-0.1, 0.1);
-    const vx = randomIntFromRange(-0.1, 0.1);
     this.y += vy;
-    this.x -= vx;
+    this.x -= this.initalvx;
     if (this.y > this.canvas.height + 128) {
       this.y = this.canvas.height - 256;
     }

@@ -3,8 +3,7 @@ let canvas = document.querySelector("canvas");
 
 import { Player } from "./Player.js";
 import { Upgrades } from "./Upgrades.js";
-import { Block } from "./objects.js";
-import { CannonBall, Enemy } from "./objects.js";
+import { Block, CannonBall, Enemy } from "./objects.js";
 
 canvas.width = 1536;
 canvas.height = 768;
@@ -15,20 +14,20 @@ let edit_mode = false;
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
-addEventListener("keydown", (e) => {
-  if (e.key == "e") {
-    edit();
-  }
-  if (e.key == "s") {
-    save();
-  }
-  if (e.key == "l") {
-    load();
-  }
-  if (e.key == "u") {
-    unload();
-  }
-});
+// addEventListener("keydown", (e) => {
+//   if (e.key == "e") {
+//     edit();
+//   }
+//   if (e.key == "s") {
+//     save();
+//   }
+//   if (e.key == "l") {
+//     load();
+//   }
+//   if (e.key == "u") {
+//     unload();
+//   }
+// });
 
 class Grid {
   constructor(x, y, color) {
@@ -249,7 +248,7 @@ function edit() {
       // Calculate grid position based on the last mouse position
       let gridX = Math.floor(lastMouseY / 32 / 4);
       let gridY = Math.floor(lastMouseX / 32 / 4);
-      console.log(gridX, gridY);  
+      console.log(gridX, gridY);
       console.log(lastMouseX, lastMouseY);
 
       let grid = grids[gridX][gridY];
@@ -524,6 +523,9 @@ class Game {
     this.switchOnce = true;
     this.gameHasBeenSwitched = false;
 
+    this.justStarted = true;
+    this.cannonJustStarted = true;
+
     this.upgrades = new Upgrades(canvas, ctx);
 
     // Background images (10)
@@ -710,15 +712,18 @@ class Game {
         for (let drop of this.rainDrops) {
           ctx.beginPath();
           ctx.moveTo(drop.x + this.player.x - canvas.width / 2, drop.y);
-          ctx.lineTo(drop.x + this.player.x - canvas.width / 2, drop.y + drop.length);
+          ctx.lineTo(
+            drop.x + this.player.x - canvas.width / 2,
+            drop.y + drop.length
+          );
           ctx.stroke();
         }
-      }
-      
+      };
+
       const updateRain = (maxRainDrops) => {
         while (this.rainDrops.length < maxRainDrops) {
           this.rainDrops.push({
-            x: (Math.random() * canvas.width * 2) - canvas.width / 2,
+            x: Math.random() * canvas.width * 2 - canvas.width / 2,
             y: Math.random() * canvas.height,
             length: Math.random() * 20,
             speed: Math.random() * 5 + 10,
@@ -726,49 +731,52 @@ class Game {
         }
         for (let drop of this.rainDrops) {
           drop.y += drop.speed;
-          if (drop.y > canvas.height-128) {
+          if (drop.y > canvas.height - 128) {
             drop.y = -drop.length;
-            drop.x = ((Math.random() * canvas.width * 2) - canvas.width / 2) + this.player.inverseX - canvas.width / 2;
+            drop.x =
+              Math.random() * canvas.width * 2 -
+              canvas.width / 2 +
+              this.player.inverseX -
+              canvas.width / 2;
           }
         }
-      }
+      };
 
       const animateRain = (maxRainDrops) => {
         drawRain();
         updateRain(maxRainDrops);
-      }
+      };
 
       if (event == 0) {
         // Normal
-        red = Math.min(150 ,Math.floor((this.timer / this.maxTimer) * 255));
+        red = Math.min(150, Math.floor((this.timer / this.maxTimer) * 255));
         green = 80;
-        blue = Math.max(50 , Math.floor((1 - this.timer / this.maxTimer) * 255));
+        blue = Math.max(50, Math.floor((1 - this.timer / this.maxTimer) * 255));
         front_red = red;
         front_green = green;
         front_blue = blue;
-        oppacity = Math.max(0,0.4 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5);
-    
-        
+        oppacity = Math.max(
+          0,
+          0.4 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5
+        );
       } else if (event == 1) {
         // Rain
         oppacity = 0.1;
         this.maxRainDrops = 300;
         animateRain(this.maxRainDrops);
-
       } else if (event == 2) {
         // Mist
-        red = Math.min(150 ,Math.floor((this.timer / this.maxTimer) * 255));
+        red = Math.min(150, Math.floor((this.timer / this.maxTimer) * 255));
         green = 80;
-        blue = Math.max(50 , Math.floor((1 - this.timer / this.maxTimer) * 255));
+        blue = Math.max(50, Math.floor((1 - this.timer / this.maxTimer) * 255));
         front_red = 189;
         front_green = 177;
         front_blue = 194;
 
-        red = Math.min(150 ,Math.floor((this.timer / this.maxTimer) * 255));
+        red = Math.min(150, Math.floor((this.timer / this.maxTimer) * 255));
         green = 80;
-        blue = Math.max(50 , Math.floor((1 - this.timer / this.maxTimer) * 255));
+        blue = Math.max(50, Math.floor((1 - this.timer / this.maxTimer) * 255));
         oppacity = 0.5;
-
       } else if (event == 3) {
         // Thunder
         this.maxRainDrops = 900;
@@ -780,13 +788,15 @@ class Game {
       ctx.fillStyle = `rgb(${red},${green},${blue})`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.globalAlpha = 1;
-  
+
       // Overlay hue
       const overlayhue = document.getElementById("overlayhue");
       const nightoverlay = document.getElementById("nightoverlay");
       overlayhue.style.backgroundColor = `rgb(${front_red},${front_green},${front_blue}, ${oppacity})`;
       if (this.timer <= 10 * 60) {
-        nightoverlay.style.backgroundColor = `rgba(8,8,8,${1 - this.timer / 600})`;
+        nightoverlay.style.backgroundColor = `rgba(8,8,8,${
+          1 - this.timer / 600
+        })`;
         // lower the saturation
       } else {
         nightoverlay.style.backgroundColor = `rgba(8,8,8,0)`;
@@ -812,7 +822,7 @@ class Game {
     const lightningY = 0;
     const lightningWidth = randomIntFromRange(500, 700);
     const lightningHeight = canvas.height;
-    if (this.allowLightning && randomIntFromRange(1,400) === 1) {
+    if (this.allowLightning && randomIntFromRange(1, 400) === 1) {
       doLightning = true;
       // Set location and size of lightning
     }
@@ -828,8 +838,8 @@ class Game {
         x < -156 &&
         x > -555 &&
         (this.player.x > -5000 ||
-          (this.player.x < -16000 && this.player.x > -19000))
-          && this.weather > 1
+          (this.player.x < -16000 && this.player.x > -19000)) &&
+        this.weather > 1
       ) {
         ctx.drawImage(
           this.bg11,
@@ -840,7 +850,7 @@ class Game {
         );
       }
       if (doLightning) {
-        ctx.fillStyle = `rgba(255, 255, 255, ${1.4 - 0.2*i})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${1.4 - 0.2 * i})`;
         ctx.fillRect(lightningX, lightningY, lightningWidth, lightningHeight);
       }
 
@@ -858,8 +868,31 @@ class Game {
     handleWeatherEvents(this.weather);
   }
 
-  displayTextBox(text, duration) {
+  async displayTextBoxSeries(texts, duration = 0) {
+    // Displays a series of text boxes
+    addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        console.log("Tutorial skipped");
+        for (let textBox of document.getElementsByClassName("text-box")) {
+          document.body.removeChild(textBox);
+        }
+        removeEventListener("keydown", () => {});
+        return;
+      }
+    });
+    for (let text of texts) {
+      await this.displayTextBox(text, duration);
+    }
+  }
+
+  async displayTextBox(text, duration = 0) {
+    // Remove any existing text boxes
+    const textBoxes = document.getElementsByClassName("text-box");
+    for (let textBox of textBoxes) {
+      document.body.removeChild(textBox);
+    }
     const textBox = document.createElement("div");
+    textBox.className = "text-box";
     textBox.style.position = "absolute";
     textBox.style.width = "300px";
     textBox.style.zIndex = "10";
@@ -872,19 +905,49 @@ class Game {
     textBox.style.color = "black";
     textBox.style.border = "1px solid rgba(184,111,80,1)";
     textBox.style.borderRadius = "5px";
-    textBox.style.textAlign = "center";
     textBox.style.zIndex = "1000";
     textBox.style.fontSize = "20px";
     textBox.style.fontFamily = "Pixelify Sans";
     textBox.style.fontOpticalSizing = "auto";
     textBox.style.whiteSpace = "pre-wrap";
-    textBox.innerText = text;
+    textBox.innerText = "";
 
-    document.body.appendChild(textBox);
+    for (let i = 0; i < text.length; i++) {
+      textBox.innerText += text[i];
+      document.body.appendChild(textBox);
+      let writeTime = 5;
+      if (
+        text[i] === "." ||
+        text[i] === "!" ||
+        text[i] === "?" ||
+        text[i] === ","
+      ) {
+        writeTime = 400;
+      } else {
+        writeTime = 30;
+      }
+      await new Promise((r) => setTimeout(r, writeTime));
+    }
 
-    setTimeout(() => {
-      document.body.removeChild(textBox);
-    }, duration);
+    if (duration > 0) {
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          document.body.removeChild(textBox);
+          resolve();
+        }, duration);
+      });
+    } else {
+      await new Promise((resolve) => {
+        const removeTextBoxOnE = (e) => {
+          if (e.key === "e") {
+            document.body.removeChild(textBox);
+            removeEventListener("keydown", removeTextBoxOnE);
+            resolve();
+          }
+        };
+        addEventListener("keydown", removeTextBoxOnE);
+      });
+    }
   }
 
   displayCastle() {
@@ -944,12 +1007,14 @@ class Game {
   updateCollect = () => {
     this.updatePlayerSpeed();
     this.infinitewalk();
-    console.log(this.player.x, this.player.inverseX, this.player.playerOffset);
 
     // update timer
     if (this.player.playerOffset >= 0) {
       if (this.timer <= 0 && !this.timeoutSet) {
-        this.displayTextBox("You fell asleep. A mysterious creature brought you back, but took all your coins.", 5000);
+        this.displayTextBox(
+          "You fell asleep. A mysterious creature brought you back, but took all your coins.",
+          7000
+        );
         this.timeoutSet = true;
         setTimeout(() => {
           this.timer = this.maxTimer;
@@ -1130,7 +1195,11 @@ class Game {
   }
 
   playCannon() {
-    this.displayTextBox("Use the mouse to aim and left click or hold to shoot. Right click to use your special cannonball.", 5000);
+    if (this.cannonJustStarted) {
+      this.displayTextBox(
+        "Use the mouse to aim and left click or hold to shoot. Right click to use your special cannonball. \n\n Press E to close."
+      );
+    }
     unload();
     this.removeListeners();
     this.x = canvas.width / 2;
@@ -1170,6 +1239,32 @@ class Game {
     this.removeListeners();
     this.towerDefense = false;
     // Plays the collection game
+    const introTexts = [
+      "Ah, you're finally awake. \n\nPress 'E' to continue. \nPress 'ESC' to skip the tutorial.",
+      "I've waited for someone to get trapped here.",
+      "...",
+      "Well, I guess you're stuck here now. Might as well start decorating, you're gonna be here a while.",
+      "But don't worry, I might help you out.",
+      "You just need to defend this castle for me.",
+      "Interact with the door to defend a wave of enemies.",
+      "Good luck.",
+      "Hold on, I almost forgot.",
+      "You should probably collect some coins first.",
+      "You'll need them for upgrades. Or a nice coffin. Up to you.",
+      "Talk to me later if you want to buy upgrades.",
+      "Walk to the right using W, A, S, D and 'space' to collect coins.",
+      "You will automatically collect coins, but they are heavy so be careful with how many you carry.",
+      "If you feel like you carry too much, press 'Q' to drop the last coin. Because nothing screams survival like abandoning wealth.",
+      "You need to come back here to acquire the coins.",
+      "Just make sure to come back before you fall asleep. Otherwise, the strange creature will take you and your coins.",
+      "Just kidding, you might be fine. Probably... The last guy was *mostly* fine. Well, the parts we found were.",
+      "Well, good luck. \n\nPress 'E' to continue.",
+    ];
+
+    if (this.justStarted) {
+      this.justStarted = false;
+      this.displayTextBoxSeries(introTexts);
+    }
     addEventListener("keydown", (e) => {
       if (e.key == "d") {
         this.pressed_keys.d = true;
@@ -1190,7 +1285,8 @@ class Game {
         if (
           this.player.playerOffset < -540 &&
           this.player.playerOffset > -700 &&
-          this.switchOnce
+          this.switchOnce &&
+          !this.towerDefense
         ) {
           this.switchOnce = false;
           this.switchGame();

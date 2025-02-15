@@ -7,14 +7,13 @@ export class Player {
 
     // X and Y position of the player camera
     this.x = this.canvas.width / 2;
-    this.inverseX =this.canvas.width / 2;
-    this.y =this.canvas.height - 256;
-    this.playerOffset = -600;
+    this.inverseX = this.canvas.width / 2;
+    this.y = this.canvas.height - 256;
+    this.playerOffset = -500;
     this.playery = 0;
 
     this.move_speed = 6;
     this.jump_speed = 13;
-
 
     this.vx = 0;
     this.vy = 0;
@@ -24,7 +23,7 @@ export class Player {
     this.gravity = 0.5;
     this.img_nr = 1;
     this.img_rotation = "";
-    this.player_img.src = `img/player/${this.img_nr}${this.img_rotation}.gif`;
+    this.player_img.src = `./img/player/${this.img_nr}${this.img_rotation}.gif`;
 
     this.onGround = false;
     this.leftCollision = false;
@@ -45,7 +44,7 @@ export class Player {
     } else if (this.movement_direction == -1) {
       this.img_rotation = "-flip"; // If direction is left
     }
-    this.player_img.src = `img/player/${this.img_nr}${this.img_rotation}.gif`;
+    this.player_img.src = `./img/player/${this.img_nr}${this.img_rotation}.gif`;
   }
 
   move() {
@@ -97,7 +96,7 @@ export class Player {
       if (
         this.inverseX - this.canvas.width / 2 + this.player_img.width * 3 <
           block.x + block.width &&
-        this.inverseX -this.canvas.width / 2 + this.player_img.width * 3 >
+        this.inverseX - this.canvas.width / 2 + this.player_img.width * 3 >
           block.x &&
         this.y < block.y + block.height &&
         this.y + this.player_img.height > block.y - 128
@@ -145,13 +144,16 @@ export class Player {
       // Handle walkable tiles (platform-like behavior)
       const nextGridOffset = Math.abs(this.nextGrid.x - this.inverseX);
       if (
-        (this.current_grid.walkable && this.vy > 0 && this.y < this.current_grid.y) || // Falling downward
+        (this.current_grid.walkable &&
+          this.vy > 0 &&
+          this.y < this.current_grid.y) || // Falling downward
         (this.vy > 0 &&
           this.nextGrid.walkable &&
           nextGridOffset < this.player_img.width * this.game.img_scale)
       ) {
         this.vy = 0;
-        this.y = this.current_grid.y - this.player_img.height * this.game.img_scale;
+        this.y =
+          this.current_grid.y - this.player_img.height * this.game.img_scale;
         this.onGround = true;
         this.leftCollision = false;
         this.rightCollision = false;
