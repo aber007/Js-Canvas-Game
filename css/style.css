@@ -29,6 +29,7 @@ canvas {
     top: 64px;
     left: 50%;
     transform: translateX(-50%);
+    overflow: scroll;
     width: 1536px;
     height: 704px;
     background-color: rgb(182, 164, 133);
