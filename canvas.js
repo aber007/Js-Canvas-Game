@@ -757,8 +757,10 @@ class Game {
         front_blue = blue;
         oppacity = Math.max(
           0,
-          0.4 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5
+          0.3 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5
         );
+
+
       } else if (event == 1) {
         // Rain
         oppacity = 0.1;
@@ -777,6 +779,14 @@ class Game {
         green = 80;
         blue = Math.max(50, Math.floor((1 - this.timer / this.maxTimer) * 255));
         oppacity = 0.5;
+
+        const gradient = ctx.createLinearGradient(canvas.width/2, canvas.height/2, canvas.width/2, canvas.height);
+        gradient.addColorStop(1, "rgba(225, 215, 229, 1)");
+        gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
+        
+
       } else if (event == 3) {
         // Thunder
         this.maxRainDrops = 900;
@@ -870,16 +880,17 @@ class Game {
 
   async displayTextBoxSeries(texts, duration = 0) {
     // Displays a series of text boxes
-    addEventListener("keydown", (e) => {
+    const skipTutorial = (e) => {
       if (e.key === "Escape") {
         console.log("Tutorial skipped");
         for (let textBox of document.getElementsByClassName("text-box")) {
           document.body.removeChild(textBox);
         }
-        removeEventListener("keydown", () => {});
+        removeEventListener("keydown", skipTutorial);
         return;
       }
-    });
+    };
+    addEventListener("keydown", skipTutorial);
     for (let text of texts) {
       await this.displayTextBox(text, duration);
     }
@@ -1012,7 +1023,7 @@ class Game {
     if (this.player.playerOffset >= 0) {
       if (this.timer <= 0 && !this.timeoutSet) {
         this.displayTextBox(
-          "You fell asleep. A mysterious creature brought you back, but took all your coins.",
+          "You got lost in the dark. A mysterious creature brought you back, but took all your coins.",
           7000
         );
         this.timeoutSet = true;
@@ -1061,6 +1072,12 @@ class Game {
       this.upgrades.showUpgradeShop();
     }
     this.gameHasBeenSwitched = true;
+
+    // Fixes any unalignment of the player
+    if (this.player.inverseX < canvas.width / 2) {
+      this.player.inverseX = canvas.width / 2;
+      this.player.x = canvas.width / 2;
+    }
   };
 
   updateCannon = () => {
@@ -1241,7 +1258,7 @@ class Game {
     // Plays the collection game
     const introTexts = [
       "Ah, you're finally awake. \n\nPress 'E' to continue. \nPress 'ESC' to skip the tutorial.",
-      "I've waited for someone to get trapped here.",
+      "I've waited for someone to get trapped here. \n\nPress 'E' to continue.",
       "...",
       "Well, I guess you're stuck here now. Might as well start decorating, you're gonna be here a while.",
       "But don't worry, I might help you out.",
@@ -1256,8 +1273,8 @@ class Game {
       "You will automatically collect coins, but they are heavy so be careful with how many you carry.",
       "If you feel like you carry too much, press 'Q' to drop the last coin. Because nothing screams survival like abandoning wealth.",
       "You need to come back here to acquire the coins.",
-      "Just make sure to come back before you fall asleep. Otherwise, the strange creature will take you and your coins.",
-      "Just kidding, you might be fine. Probably... The last guy was *mostly* fine. Well, the parts we found were.",
+      "Just make sure to come back before nighttime. Otherwise, the strange creature will take you and your coins.",
+      "Just kidding, you might be fine. Probably... The last guy was *mostly* fine. Well, the parts I found were.",
       "Well, good luck. \n\nPress 'E' to continue.",
     ];
 
@@ -1341,6 +1358,12 @@ for (let i = 1; i < 8; i++) {
   imagePaths.push(`img/cannon/${i}.gif`);
 }
 imagePaths.push("img/cannon/wheel.gif");
+
+// Load player images
+for (let i = 1; i < 5; i++) {
+  imagePaths.push(`img/player/${i}.gif`);
+  imagePaths.push(`img/player/${i}-flip.gif`);
+}
 
 let grids = [];
 for (let j = 0; j < 8; j++) {

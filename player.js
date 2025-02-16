@@ -146,10 +146,12 @@ export class Player {
       if (
         (this.current_grid.walkable &&
           this.vy > 0 &&
-          this.y < this.current_grid.y) || // Falling downward
+          this.y < this.current_grid.y &&
+          this.y - this.current_grid.y < -115) || // Falling downward
         (this.vy > 0 &&
           this.nextGrid.walkable &&
-          nextGridOffset < this.player_img.width * this.game.img_scale)
+          nextGridOffset < this.player_img.width * this.game.img_scale &&
+          this.y - this.current_grid.y < -115)
       ) {
         this.vy = 0;
         this.y =
