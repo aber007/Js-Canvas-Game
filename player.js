@@ -98,8 +98,8 @@ export class Player {
           block.x + block.width &&
         this.inverseX - this.canvas.width / 2 + this.player_img.width * 3 >
           block.x &&
-        this.y < block.y + block.height &&
-        this.y + this.player_img.height > block.y - 128
+        this.y < block.y + block.height - 100 &&
+        this.y + this.player_img.height + 128 > block.y
       ) {
         // Add value to score
         if (block.canBePickedUp) {

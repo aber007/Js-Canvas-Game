@@ -1311,7 +1311,7 @@ class Game {
         }
       }
       if (e.key == "r") {
-        this.upgradeShopVisible = !this.upgradeShopVisible;
+        this.upgrades.showUpgradeShop();
       }
     });
     addEventListener("keyup", (e) => {
