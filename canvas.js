@@ -1,8 +1,8 @@
 console.log("canvas.js loaded");
 let canvas = document.querySelector("canvas");
 
-import { Player } from "./Player.js";
-import { Upgrades } from "./Upgrades.js";
+import { Player } from "./player.js";
+import { Upgrades } from "./upgrades.js";
 import { Block, CannonBall, Enemy } from "./objects.js";
 
 canvas.width = 1536;
@@ -558,7 +558,7 @@ class Game {
     this.maybeHat = false;
 
     this.hud = new Image();
-    this.hud.src = "img/background/UI.png";
+    this.hud.src = "img/background/ui.png";
 
     this.tower = new Image();
     this.tower.src = "img/tower.png";
