@@ -23,3 +23,47 @@ canvas {
     top: -1408px;
     background-color: rgb(8, 8, 8, 0);
 }
+.upgradebackground {
+    z-index: 10;
+    position: absolute;
+    top: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1536px;
+    height: 704px;
+    background-color: rgb(182, 164, 133);
+    box-sizing: border-box;
+    border: 2px solid rgba(184, 111, 80, 1);
+}
+.upgradedescription {
+    z-index: 12;
+    position: absolute;
+    width: auto;
+    height: auto;
+    background-color: rgb(101, 98, 93);
+    box-sizing: border-box;
+    border: 2px solid rgba(184, 111, 80, 1);
+    color: white;
+    padding: 10px;
+}
+.upgradebutton {
+    z-index: 11;
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background-color: rgb(184, 111, 80);
+    border: 2px solid rgb(255, 0, 0);
+    border-radius: 50%;
+    box-sizing: border-box;
+    color: white;
+    font-size: 20px;
+    text-align: center;
+    line-height: 50px;
+    cursor: pointer;
+}
+.upgradebutton:hover {
+    border: 2px solid rgb(183, 183, 183);
+}
+.upgradebutton:active {
+    border: 2px solid rgb(0, 255, 0);
+}
