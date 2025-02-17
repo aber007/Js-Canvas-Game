@@ -1169,7 +1169,6 @@ class Game {
 
   playCollect() {
     unload();
-    this.upgrades.showUpgradeShop();
     this.weather = randomIntFromRange(0, 3);
     this.timer = this.maxTimer;
     this.removeListeners();
@@ -1199,7 +1198,7 @@ class Game {
 
     if (this.justStarted) {
       this.justStarted = false;
-      // this.displayTextBoxSeries(introTexts);
+      this.displayTextBoxSeries(introTexts);
     }
     addEventListener("keydown", (e) => {
       if (e.key == "d") {
