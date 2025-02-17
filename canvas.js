@@ -559,7 +559,7 @@ class Game {
     this.maybeHat = false;
 
     this.hud = new Image();
-    this.hud.src = "img/background/ui.png";
+    this.hud.src = "img/background/topbar.png";
 
     this.tower = new Image();
     this.tower.src = "img/tower.png";
