@@ -597,9 +597,9 @@ class Game {
     this.playerReady = false;
     this.health = 10;
     this.maxHealth = 10;
-    this.yellow = 0;
-    this.gray = 0;
-    this.blue = 0;
+    this.yellow = 1000;
+    this.gray = 1000;
+    this.blue = 1000;
   }
 
   getRandomTexture() {

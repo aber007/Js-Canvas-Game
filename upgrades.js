@@ -58,6 +58,32 @@ export class Upgrades {
       x: 0,
       y: 0,
     };
+    this.upgrades["test1"] = {
+      name: "test1",
+      id: "test1",
+      previous: "dmg2",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Deal 20% of enemy hp as damage",
+      x: 0,
+      y: 0,
+    };
+    // this.upgrades["test2"] = {
+    //   name: "test2",
+    //   id: "test2",
+    //   previous: "dmg2",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Deal 20% of enemy hp as damage",
+    //   x: 0,
+    //   y: 0,
+    // }
     // this.upgrades["test1"] = {
     //   name: "test1",
     //   id: "test1",
@@ -84,58 +110,59 @@ export class Upgrades {
     //   x: 0,
     //   y: 0,
     // };
-    this.upgrades["hp1"] = {
-      name: "Health",
-      id: "hp1",
-      previous: "",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Increase health by 1",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["hp2"] = {
-      name: "Health",
-      id: "hp2",
-      previous: "hp1",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Increase health by 1",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["coffin"] = {
-      name: "Health",
-      id: "coffin",
-      previous: "hp1",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Increase health by 1",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["speed1"] = {
-      name: "Speed",
-      id: "speed1",
-      previous: "",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Increase move speed by 1",
-      x: 0,
-      y: 0,
-    };
+    // this.upgrades["hp1"] = {
+    //   name: "Health",
+    //   id: "hp1",
+    //   previous: "",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Increase health by 1",
+    //   x: 0,
+    //   y: 0,
+    // };
+    // this.upgrades["hp2"] = {
+    //   name: "Health",
+    //   id: "hp2",
+    //   previous: "hp1",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Increase health by 1",
+    //   x: 0,
+    //   y: 0,
+    // };
+    // this.upgrades["coffin"] = {
+    //   name: "Health",
+    //   id: "coffin",
+    //   previous: "hp1",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Increase health by 1",
+    //   x: 0,
+    //   y: 0,
+    // };
+    // this.upgrades["speed1"] = {
+    //   name: "Speed",
+    //   id: "speed1",
+    //   previous: "",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Increase move speed by 1",
+    //   x: 0,
+    //   y: 0,
+    // };
+    this.lines = {};
     this.fixPositionOfUpgradeButons();
   }
   fixPositionOfUpgradeButons() {
@@ -204,7 +231,7 @@ export class Upgrades {
             // set starting y value
             let maxY = 0;
             for (let upgrade3 of Object.values(this.upgrades)) {
-              console.log(upgrade3.name + "Should has Y of: " + upgrade3.y)
+              console.log(upgrade3.name + "Should has Y of: " + upgrade3.y);
               if (upgrade3.y > maxY) {
                 maxY = upgrade3.y + 120;
               }
@@ -236,8 +263,41 @@ export class Upgrades {
         upgradebutton.style.border = "2px solid rgb(0, 255, 0)";
       }
       upgradebutton.innerHTML = value.name[0];
+
+      if (value.previous != "") {
+        // Adding lines to indicate where next upgrade is
+        const previousUpgrade = this.upgrades[value.previous];
+        const line = document.createElement("div");
+        line.className = "upgrade-line";
+        const buttonSize = 100;
+        const x1 = value.x + buttonSize / 2;
+        const y1 = value.y + buttonSize / 2;
+        const x2 = previousUpgrade.x + buttonSize / 2; 
+        const y2 = previousUpgrade.y + buttonSize / 2;
+        const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
+        line.style.position = "absolute";
+        line.style.backgroundColor = value.unlocked
+          ? "rgb(0, 255, 0)"
+          : "rgb(255, 0, 0)";
+        line.style.zIndex = "1";
+        line.style.width = length + "px";
+        line.style.height = "2px";
+        line.style.transform = `rotate(${angle}deg)`;
+        line.style.top = y1 + "px";
+        line.style.left = x1 + "px";
+        line.style.transformOrigin = "0 0";
+        upgradebackground.appendChild(line);
+
+        // Store reference to the line
+        this.lines[upgrade] = line;
+      }
+
       upgradebutton.onclick = () => {
         // Check if previous upgrade is unlocked
+        if (value.unlocked) {
+          return;
+        }
         if (value.previous != "") {
           // Check if uprade can be bought
           if (!this.upgrades[value.previous].unlocked) {
@@ -256,8 +316,17 @@ export class Upgrades {
           blue >= value.costblue
         ) {
           // Buy upgrade
-          displayTextBox("Bought " + upgrade);
+          gray -= value.costgray;
+          yellow -= value.costyellow;
+          blue -= value.costblue;
+          value.unlocked = true;
+          displayTextBox("Bought " + value.name + "!", 2000);
           upgradebutton.style.border = "2px solid rgb(0, 255, 0)";
+
+          // Update line color
+          if (this.lines[upgrade]) {
+            this.lines[upgrade].style.backgroundColor = "rgb(0, 255, 0)";
+          }
         } else {
           displayTextBox(
             "You need more coins to buy " + value.name + "!",
