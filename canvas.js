@@ -1173,6 +1173,7 @@ class Game {
     this.timer = this.maxTimer;
     this.removeListeners();
     this.towerDefense = false;
+    this.upgrades.showUpgradeShop(this.gray, this.yellow, this.blue);
     // Plays the collection game
     const introTexts = [
       "Ah, you're finally awake. \n\nPress 'E' to continue. \nPress 'ESC' to skip the tutorial.",
@@ -1198,7 +1199,7 @@ class Game {
 
     if (this.justStarted) {
       this.justStarted = false;
-      displayTextBoxSeries(introTexts);
+      // displayTextBoxSeries(introTexts);
     }
     addEventListener("keydown", (e) => {
       if (e.key == "d") {
