@@ -1198,7 +1198,7 @@ class Game {
 
     if (this.justStarted) {
       this.justStarted = false;
-      this.displayTextBoxSeries(introTexts);
+      displayTextBoxSeries(introTexts);
     }
     addEventListener("keydown", (e) => {
       if (e.key == "d") {

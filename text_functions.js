@@ -12,7 +12,7 @@ export async function displayTextBoxSeries(texts, duration = 0) {
     };
     addEventListener("keydown", skipTutorial);
     for (let text of texts) {
-      await this.displayTextBox(text, duration);
+      await displayTextBox(text, duration);
     }
   }
 
