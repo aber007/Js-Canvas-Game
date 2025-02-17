@@ -146,7 +146,6 @@ export class Upgrades {
       }
       upgradebutton.innerHTML = value.name[0];
       upgradebutton.onclick = () => {
-        console.log("Clicked on " + upgrade);
         // Check if previous upgrade is unlocked
         if (value.previous != "") {
           // Check if uprade can be bought
@@ -157,7 +156,8 @@ export class Upgrades {
         }
         if (gray >= value.costgray && yellow >= value.costyellow && blue >= value.costblue) {
           // Buy upgrade
-          console.log("Bought upgrade " + upgrade);
+          displayTextBox("Bought " + upgrade);
+          upgradebutton.style.border = "2px solid rgb(0, 255, 0)";
         } else {
           displayTextBox("You need more coins to buy " + value.name + "!", 2000);
         }
