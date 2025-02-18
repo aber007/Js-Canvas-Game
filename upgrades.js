@@ -7,11 +7,18 @@ export class Upgrades {
     this.ctx = ctx;
     this.visible = false;
     this.upgrades = upgrades;
-    
-
     this.lines = {};
     this.fixPositionOfUpgradeButons();
   }
+  // Functions for upgrades
+  increaseDamage(game) {
+    console.log("Increasing damage");
+    game.cannon.normalDamage += 1;
+  }
+  
+  
+  
+  
   fixPositionOfUpgradeButons() {
     // Set level
     for (let value of Object.values(this.upgrades)) {
@@ -177,6 +184,7 @@ export class Upgrades {
           game.yellow -= value.costyellow;
           game.blue -= value.costblue;
           value.unlocked = true;
+          eval("this." + value.function);
           displayTextBox("Bought " + value.name + "!", 2000);
           upgradebutton.style.border = "2px solid rgb(0, 255, 0)";
 

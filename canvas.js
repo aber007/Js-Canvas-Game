@@ -1230,7 +1230,7 @@ class Game {
         }
       }
       if (e.key == "r") {
-        this.upgrades.showUpgradeShop(this.gray, this.yellow, this.blue);
+        this.upgrades.showUpgradeShop(this);
       }
     });
     addEventListener("keyup", (e) => {

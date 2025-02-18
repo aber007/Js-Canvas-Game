@@ -177,9 +177,14 @@ export class Enemy extends Block {
         this.y + this.height > ball.y
       ) {
         if (this.hitBy.includes(ball) == false) {
-          this.hp -= 1;
           this.hitBy.push(ball);
+          if (ball.special == "") {
+            this.hp -= game.cannon.normalDamage;
+          } else {
+            this.hp -= game.cannon.specialDamage;
+          }
           if (ball.special != "pierce") {
+
             ball.killCannonBall();
           }
           if (this.hp <= 0) {
