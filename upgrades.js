@@ -16,8 +16,6 @@ export class Upgrades {
       costyellow: 0,
       costblue: 0,
       description: "Increase damage by 1",
-      x: 0,
-      y: 0,
     };
     this.upgrades["dmg2"] = {
       name: "Flaming hot balls",
@@ -45,85 +43,45 @@ export class Upgrades {
       x: 0,
       y: 0,
     };
-    this.upgrades["dmgpercent20"] = {
-      name: "Soul sucking balls",
-      id: "dmgpercent20",
-      previous: "dmg1",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Deal 20% of enemy hp as damage",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["test2"] = {
-      name: "test2",
-      id: "test2",
+    this.upgrades["bigball"] = {
+      name: "Big balls",
+      id: "bigball",
       previous: "dmg2",
       unlocked: false,
       repurchase: false,
       costgray: 1,
       costyellow: 0,
       costblue: 0,
-      description: "Deal 20% of enemy hp as damage",
-      x: 0,
-      y: 0,
-    }
-    this.upgrades["test3"] = {
-      name: "test3",
-      id: "test3",
-      previous: "test2",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Deal 20% of enemy hp as damage",
-      x: 0,
-      y: 0,
-    }
-    this.upgrades["test1"] = {
-      name: "test1",
-      id: "test1",
-      previous: "dmgpercent20", 
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Deal 20% of enemy hp as damage",
+      description: "Unlock special attack (Peircing ball)",
       x: 0,
       y: 0,
     };
-    this.upgrades["test1.1"] = {
-      name: "test1.1",
-      id: "test1.1",
-      previous: "test1", 
+    this.upgrades["dmgpercent5"] = {
+      name: "Vampire balls",
+      id: "dmgpercent5",
+      previous: "dmg1",
       unlocked: false,
       repurchase: false,
       costgray: 1,
       costyellow: 0,
       costblue: 0,
-      description: "Deal 20% of enemy hp as damage",
+      description: "Deal 5% of enemy hp as damage",
       x: 0,
       y: 0,
     };
-    this.upgrades["test1.2"] = {
-      name: "test1.2",
-      id: "test1.2",
-      previous: "test1",
+    this.upgrades["dmgpercent20"] = {
+      name: "Soul sucking balls",
+      id: "dmgpercent20",
+      previous: "dmgpercent5",
       unlocked: false,
       repurchase: false,
       costgray: 1,
       costyellow: 0,
       costblue: 0,
-      description: "Deal 20% of enemy hp as damage",
+      description: "Deal 20% of enemy hp as damage (replaces 5%)",
       x: 0,
       y: 0,
     };
- 
     this.upgrades["hp1"] = {
       name: "Health",
       id: "hp1",
@@ -138,7 +96,7 @@ export class Upgrades {
       y: 0,
     };
     this.upgrades["hp2"] = {
-      name: "Health",
+      name: "More health",
       id: "hp2",
       previous: "hp1",
       unlocked: false,
@@ -151,7 +109,7 @@ export class Upgrades {
       y: 0,
     };
     this.upgrades["coffin"] = {
-      name: "Health",
+      name: "Cheap Coffin",
       id: "coffin",
       previous: "hp1",
       unlocked: false,
@@ -159,7 +117,7 @@ export class Upgrades {
       costgray: 1,
       costyellow: 0,
       costblue: 0,
-      description: "Increase health by 1",
+      description: "Reduce death damage slightly",
       x: 0,
       y: 0,
     };
@@ -172,7 +130,7 @@ export class Upgrades {
       costgray: 1,
       costyellow: 0,
       costblue: 0,
-      description: "Increase move speed by 1",
+      description: "Increase move speed",
       x: 0,
       y: 0,
     };
