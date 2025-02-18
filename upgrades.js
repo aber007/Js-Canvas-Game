@@ -58,9 +58,9 @@ export class Upgrades {
       x: 0,
       y: 0,
     };
-    this.upgrades["test1"] = {
-      name: "test1",
-      id: "test1",
+    this.upgrades["test2"] = {
+      name: "test2",
+      id: "test2",
       previous: "dmg2",
       unlocked: false,
       repurchase: false,
@@ -70,104 +70,118 @@ export class Upgrades {
       description: "Deal 20% of enemy hp as damage",
       x: 0,
       y: 0,
+    }
+    this.upgrades["test3"] = {
+      name: "test3",
+      id: "test3",
+      previous: "test2",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Deal 20% of enemy hp as damage",
+      x: 0,
+      y: 0,
+    }
+    this.upgrades["test1"] = {
+      name: "test1",
+      id: "test1",
+      previous: "dmgpercent20", 
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Deal 20% of enemy hp as damage",
+      x: 0,
+      y: 0,
     };
-    // this.upgrades["test2"] = {
-    //   name: "test2",
-    //   id: "test2",
-    //   previous: "dmg2",
-    //   unlocked: false,
-    //   repurchase: false,
-    //   costgray: 1,
-    //   costyellow: 0,
-    //   costblue: 0,
-    //   description: "Deal 20% of enemy hp as damage",
-    //   x: 0,
-    //   y: 0,
-    // }
-    // this.upgrades["test1"] = {
-    //   name: "test1",
-    //   id: "test1",
-    //   previous: "dmgpercent20",
-    //   unlocked: false,
-    //   repurchase: false,
-    //   costgray: 1,
-    //   costyellow: 0,
-    //   costblue: 0,
-    //   description: "Deal 20% of enemy hp as damage",
-    //   x: 0,
-    //   y: 0,
-    // };
-    // this.upgrades["test2"] = {
-    //   name: "test2",
-    //   id: "test2",
-    //   previous: "dmgpercent20",
-    //   unlocked: false,
-    //   repurchase: false,
-    //   costgray: 1,
-    //   costyellow: 0,
-    //   costblue: 0,
-    //   description: "Deal 20% of enemy hp as damage",
-    //   x: 0,
-    //   y: 0,
-    // };
-    // this.upgrades["hp1"] = {
-    //   name: "Health",
-    //   id: "hp1",
-    //   previous: "",
-    //   unlocked: false,
-    //   repurchase: false,
-    //   costgray: 1,
-    //   costyellow: 0,
-    //   costblue: 0,
-    //   description: "Increase health by 1",
-    //   x: 0,
-    //   y: 0,
-    // };
-    // this.upgrades["hp2"] = {
-    //   name: "Health",
-    //   id: "hp2",
-    //   previous: "hp1",
-    //   unlocked: false,
-    //   repurchase: false,
-    //   costgray: 1,
-    //   costyellow: 0,
-    //   costblue: 0,
-    //   description: "Increase health by 1",
-    //   x: 0,
-    //   y: 0,
-    // };
-    // this.upgrades["coffin"] = {
-    //   name: "Health",
-    //   id: "coffin",
-    //   previous: "hp1",
-    //   unlocked: false,
-    //   repurchase: false,
-    //   costgray: 1,
-    //   costyellow: 0,
-    //   costblue: 0,
-    //   description: "Increase health by 1",
-    //   x: 0,
-    //   y: 0,
-    // };
-    // this.upgrades["speed1"] = {
-    //   name: "Speed",
-    //   id: "speed1",
-    //   previous: "",
-    //   unlocked: false,
-    //   repurchase: false,
-    //   costgray: 1,
-    //   costyellow: 0,
-    //   costblue: 0,
-    //   description: "Increase move speed by 1",
-    //   x: 0,
-    //   y: 0,
-    // };
+    this.upgrades["test1.1"] = {
+      name: "test1.1",
+      id: "test1.1",
+      previous: "test1", 
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Deal 20% of enemy hp as damage",
+      x: 0,
+      y: 0,
+    };
+    this.upgrades["test1.2"] = {
+      name: "test1.2",
+      id: "test1.2",
+      previous: "test1",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Deal 20% of enemy hp as damage",
+      x: 0,
+      y: 0,
+    };
+ 
+    this.upgrades["hp1"] = {
+      name: "Health",
+      id: "hp1",
+      previous: "",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Increase health by 1",
+      x: 0,
+      y: 0,
+    };
+    this.upgrades["hp2"] = {
+      name: "Health",
+      id: "hp2",
+      previous: "hp1",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Increase health by 1",
+      x: 0,
+      y: 0,
+    };
+    this.upgrades["coffin"] = {
+      name: "Health",
+      id: "coffin",
+      previous: "hp1",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Increase health by 1",
+      x: 0,
+      y: 0,
+    };
+    this.upgrades["speed1"] = {
+      name: "Speed",
+      id: "speed1",
+      previous: "",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Increase move speed by 1",
+      x: 0,
+      y: 0,
+    };
     this.lines = {};
     this.fixPositionOfUpgradeButons();
   }
   fixPositionOfUpgradeButons() {
     // Set level
-    for (let [upgrade, value] of Object.entries(this.upgrades)) {
+    for (let value of Object.values(this.upgrades)) {
       let level = 0;
       let original = value;
       while (value.previous != "") {
@@ -177,7 +191,7 @@ export class Upgrades {
       original.level = level;
     }
     let trees = {};
-    for (let [upgrade, value] of Object.entries(this.upgrades)) {
+    for (let value of Object.values(this.upgrades)) {
       const original = value;
       while (value.previous != "") {
         value = this.upgrades[value.previous];
@@ -211,7 +225,7 @@ export class Upgrades {
 
       for (let upgrade of tree) {
         upgrade.x = upgrade.level * 120;
-        const defaulty = 120;
+        const defaulty = 200;
         if (upgrade.amount > 1) {
           // create a new subtree only containing upgrades of the same level
           let subtree = [];
@@ -220,9 +234,16 @@ export class Upgrades {
               subtree.push(upgrade2);
             }
           }
+          // Find first common ancestor
+          let commonAncestor = upgrade;
+          while (commonAncestor.previous != "") {
+            commonAncestor = this.upgrades[commonAncestor.previous];
+          }
+
+          console.log(subtree);
           const levelHeight = 120 * subtree.length;
           upgrade.y =
-            this.upgrades[upgrade.previous].y +
+            commonAncestor.y +
             50 -
             levelHeight / 2 +
             subtree.indexOf(upgrade) * 120;
@@ -243,6 +264,7 @@ export class Upgrades {
             upgrade.y = this.upgrades[upgrade.previous].y;
           }
         }
+        upgrade.x += 50;
       }
     }
   }
