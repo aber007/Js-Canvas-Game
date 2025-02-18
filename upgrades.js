@@ -1,139 +1,14 @@
 import { displayTextBox } from "./text_functions.js";
+import { upgrades } from "./upgradevalues.js";
 
 export class Upgrades {
   constructor(canvas, ctx) {
     this.canvas = canvas;
     this.ctx = ctx;
     this.visible = false;
-    this.upgrades = {};
-    this.upgrades["dmg1"] = {
-      name: "Sharper balls",
-      id: "dmg1",
-      previous: "",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Increase damage by 1",
-    };
-    this.upgrades["dmg2"] = {
-      name: "Flaming hot balls",
-      id: "dmg2",
-      previous: "dmg1",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Increase damage by 1",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["dmg3"] = {
-      name: "Spiky balls",
-      id: "dmg3",
-      previous: "dmg2",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Increase damage by 1",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["bigball"] = {
-      name: "Big balls",
-      id: "bigball",
-      previous: "dmg2",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Unlock special attack (Peircing ball)",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["dmgpercent5"] = {
-      name: "Vampire balls",
-      id: "dmgpercent5",
-      previous: "dmg1",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Deal 5% of enemy hp as damage",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["dmgpercent20"] = {
-      name: "Soul sucking balls",
-      id: "dmgpercent20",
-      previous: "dmgpercent5",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Deal 20% of enemy hp as damage (replaces 5%)",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["hp1"] = {
-      name: "Health",
-      id: "hp1",
-      previous: "",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Increase health by 1",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["hp2"] = {
-      name: "More health",
-      id: "hp2",
-      previous: "hp1",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Increase health by 1",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["coffin"] = {
-      name: "Cheap Coffin",
-      id: "coffin",
-      previous: "hp1",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Reduce death damage slightly",
-      x: 0,
-      y: 0,
-    };
-    this.upgrades["speed1"] = {
-      name: "Speed",
-      id: "speed1",
-      previous: "",
-      unlocked: false,
-      repurchase: false,
-      costgray: 1,
-      costyellow: 0,
-      costblue: 0,
-      description: "Increase move speed",
-      x: 0,
-      y: 0,
-    };
+    this.upgrades = upgrades;
+    
+
     this.lines = {};
     this.fixPositionOfUpgradeButons();
   }
@@ -197,8 +72,6 @@ export class Upgrades {
           while (commonAncestor.previous != "") {
             commonAncestor = this.upgrades[commonAncestor.previous];
           }
-
-          console.log(subtree);
           const levelHeight = 120 * subtree.length;
           upgrade.y =
             commonAncestor.y +
@@ -208,15 +81,19 @@ export class Upgrades {
         } else {
           if (upgrade.level == 0) {
             // set starting y value
-            let maxY = 0;
-            for (let upgrade3 of Object.values(this.upgrades)) {
-              console.log(upgrade3.name + "Should has Y of: " + upgrade3.y);
-              if (upgrade3.y > maxY) {
-                maxY = upgrade3.y + 120;
-              }
+            switch (upgrade.id) {
+              case "dmg1":
+                upgrade.y = defaulty;
+              break;
+              case "hp1":
+                upgrade.y = defaulty * 2.8;
+                break
+              case "speed1":
+                upgrade.y = defaulty * 4.6;
+                break
+              default:
+                upgrade.y = defaulty;
             }
-            console.log("Upgrade " + upgrade.name + "Should be on " + maxY);
-            upgrade.y = defaulty + maxY;
           } else {
             // inherit y from previous upgrade
             upgrade.y = this.upgrades[upgrade.previous].y;
@@ -227,7 +104,7 @@ export class Upgrades {
     }
   }
 
-  showUpgradeShop(gray, yellow, blue) {
+  showUpgradeShop(game) {
     const upgradebackground = document.createElement("div");
     upgradebackground.id = "upgradebackground";
     upgradebackground.className = "upgradebackground";
@@ -252,7 +129,7 @@ export class Upgrades {
         const buttonSize = 100;
         const x1 = value.x + buttonSize / 2;
         const y1 = value.y + buttonSize / 2;
-        const x2 = previousUpgrade.x + buttonSize / 2; 
+        const x2 = previousUpgrade.x + buttonSize / 2;
         const y2 = previousUpgrade.y + buttonSize / 2;
         const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
         const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
@@ -291,14 +168,14 @@ export class Upgrades {
           }
         }
         if (
-          gray >= value.costgray &&
-          yellow >= value.costyellow &&
-          blue >= value.costblue
+          game.gray >= value.costgray &&
+          game.yellow >= value.costyellow &&
+          game.blue >= value.costblue
         ) {
           // Buy upgrade
-          gray -= value.costgray;
-          yellow -= value.costyellow;
-          blue -= value.costblue;
+          game.gray -= value.costgray;
+          game.yellow -= value.costyellow;
+          game.blue -= value.costblue;
           value.unlocked = true;
           displayTextBox("Bought " + value.name + "!", 2000);
           upgradebutton.style.border = "2px solid rgb(0, 255, 0)";

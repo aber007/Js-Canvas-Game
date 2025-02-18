@@ -1173,7 +1173,7 @@ class Game {
     this.timer = this.maxTimer;
     this.removeListeners();
     this.towerDefense = false;
-    this.upgrades.showUpgradeShop(this.gray, this.yellow, this.blue);
+    this.upgrades.showUpgradeShop(this);
     // Plays the collection game
     const introTexts = [
       "Ah, you're finally awake. \n\nPress 'E' to continue. \nPress 'ESC' to skip the tutorial.",
