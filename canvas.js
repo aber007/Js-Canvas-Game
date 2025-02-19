@@ -15,20 +15,20 @@ let edit_mode = false;
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
-// addEventListener("keydown", (e) => {
-//   if (e.key == "e") {
-//     edit();
-//   }
-//   if (e.key == "s") {
-//     save();
-//   }
-//   if (e.key == "l") {
-//     load();
-//   }
-//   if (e.key == "u") {
-//     unload();
-//   }
-// });
+addEventListener("keydown", (e) => {
+  if (e.key == "e") {
+    edit();
+  }
+  if (e.key == "s") {
+    save();
+  }
+  if (e.key == "l") {
+    load();
+  }
+  if (e.key == "u") {
+    unload();
+  }
+});
 
 class Grid {
   constructor(x, y, color) {
@@ -604,7 +604,7 @@ class Game {
 
   getRandomTexture() {
     while (true) {
-      const random = randomIntFromRange(1, 6);
+      const random = randomIntFromRange(1, 7);
       if (random != this.currentTexturenr) {
         this.currentTexturenr = random;
         return random;
@@ -1173,7 +1173,6 @@ class Game {
     this.timer = this.maxTimer;
     this.removeListeners();
     this.towerDefense = false;
-    this.upgrades.showUpgradeShop(this);
     // Plays the collection game
     const introTexts = [
       "Ah, you're finally awake. \n\nPress 'E' to continue. \nPress 'ESC' to skip the tutorial.",
@@ -1304,7 +1303,7 @@ window.game = game;
 preloadImages(imagePaths)
   .then(() => {
     console.log("All images preloaded successfully!");
-    game.playCollect(); // Start the game loop
+    // game.playCollect(); // Start the game loop
   })
   .catch((error) => {
     console.error(error);
