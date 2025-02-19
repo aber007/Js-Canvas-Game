@@ -15,8 +15,30 @@ export class Upgrades {
     console.log("Increasing damage");
     game.cannon.normalDamage += 1;
   }
-  
-  
+  increaseHealth(game) {
+    console.log("Increasing health");
+    game.maxHealth += 5;
+  }
+  increaseSpeed(game) {
+    console.log("Increasing speed");
+    game.player.move_speed += 1;
+  }
+  increaseInventory(game) {
+    console.log("Increasing inventory");
+    game.weightMultiplier += 0.5;
+  }
+  increaseTime(game) {
+    console.log("Increasing time");
+    game.maxTimer += 20 * 60;
+    game.timer += 20 * 60;
+  }
+  regenerateHealth(game) {
+    if ((game.timer / 60) % 30 == 0 && upgrades["regen1"].unlocked && game.timer != game.maxTimer && game.health < game.maxHealth && game.timer > 0) {
+      console.log("Regenerating health");
+      game.health += 1;
+    }
+  }
+
   
   
   fixPositionOfUpgradeButons() {

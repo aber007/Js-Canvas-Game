@@ -15,20 +15,20 @@ let edit_mode = false;
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
-addEventListener("keydown", (e) => {
-  if (e.key == "e") {
-    edit();
-  }
-  if (e.key == "s") {
-    save();
-  }
-  if (e.key == "l") {
-    load();
-  }
-  if (e.key == "u") {
-    unload();
-  }
-});
+// addEventListener("keydown", (e) => {
+//   if (e.key == "e") {
+//     edit();
+//   }
+//   if (e.key == "s") {
+//     save();
+//   }
+//   if (e.key == "l") {
+//     load();
+//   }
+//   if (e.key == "u") {
+//     unload();
+//   }
+// });
 
 class Grid {
   constructor(x, y, color) {
@@ -576,7 +576,7 @@ class Game {
     this.inventory = [];
 
     this.upgradeShopVisible = false;
-    this.maxTimer = 120 * 60; //Seconds times framerate
+    this.maxTimer = 5 * 60; //Seconds times framerate
     this.timer = 0;
     this.weather = 0;
 
@@ -933,19 +933,25 @@ class Game {
     );
   }
 
+  checkPassiveUpgrades() {
+    this.upgrades.regenerateHealth(game);
+  }
+
   updateCollect = () => {
     this.updatePlayerSpeed();
     this.infinitewalk();
+    this.checkPassiveUpgrades();
 
     // update timer
     if (this.player.playerOffset >= 0) {
       if (this.timer <= 0 && !this.timeoutSet) {
         displayTextBox(
-          "You got lost in the dark. A mysterious creature brought you back, but took all your coins.",
+          "You got lost in the dark. A mysterious creature knocked you out and took all your coins.",
           7000
         );
         this.timeoutSet = true;
         setTimeout(() => {
+          this.health -= 3;
           this.timer = this.maxTimer;
           this.switchOnce = false;
           this.switchGame();
@@ -1121,12 +1127,12 @@ class Game {
   }
 
   removeListeners() {
-    removeEventListener("keydown", () => {});
-    removeEventListener("keyup", () => {});
-    removeEventListener("mousemove", () => {});
-    removeEventListener("mousedown", () => {});
-    removeEventListener("mouseup", () => {});
-    removeEventListener("contextmenu", () => {});
+    removeEventListener("keydown", this.keydownListener);
+    removeEventListener("keyup", this.keyupListener);
+    removeEventListener("mousemove", this.mousemoveListener);
+    removeEventListener("mousedown", this.mousedownListener);
+    removeEventListener("mouseup", this.mouseupListener);
+    removeEventListener("contextmenu", this.contextmenuListener);
   }
 
   playCannon() {
@@ -1141,29 +1147,35 @@ class Game {
 
     this.blocks = [];
     this.towerDefense = true;
-    // Remove previous event listeners
 
-    // Plays the tower defence game
-    addEventListener("mousemove", (event) => {
+    // Define event listeners
+    this.mousemoveListener = (event) => {
       this.mouse.x = event.clientX;
       this.mouse.y = event.clientY;
-    });
-    addEventListener("mousedown", (e) => {
+    };
+    this.mousedownListener = (e) => {
       if (e.button == 0) {
         this.mouse.pressed = true;
       } else if (e.button == 2 && this.cannon.specialCooldown <= 0) {
         this.cannon.img_nr = 2;
       }
-    });
-    addEventListener("mouseup", (e) => {
+    };
+    this.mouseupListener = (e) => {
       if (e.button == 0) {
         this.mouse.pressed = false;
       }
-    });
-    addEventListener("contextmenu", (e) => {
+    };
+    this.contextmenuListener = (e) => {
       e.preventDefault();
       this.cannon.shoot(true);
-    });
+    };
+
+    // Add event listeners
+    addEventListener("mousemove", this.mousemoveListener);
+    addEventListener("mousedown", this.mousedownListener);
+    addEventListener("mouseup", this.mouseupListener);
+    addEventListener("contextmenu", this.contextmenuListener);
+
     load(-1);
   }
 
@@ -1173,7 +1185,7 @@ class Game {
     this.timer = this.maxTimer;
     this.removeListeners();
     this.towerDefense = false;
-    // Plays the collection game
+
     const introTexts = [
       "Ah, you're finally awake. \n\nPress 'E' to continue. \nPress 'ESC' to skip the tutorial.",
       "I've waited for someone to get trapped here. \n\nPress 'E' to continue.",
@@ -1200,7 +1212,9 @@ class Game {
       this.justStarted = false;
       // displayTextBoxSeries(introTexts);
     }
-    addEventListener("keydown", (e) => {
+
+    // Define event listeners
+    this.keydownListener = (e) => {
       if (e.key == "d") {
         this.pressed_keys.d = true;
         this.player.rightCollision = false;
@@ -1231,8 +1245,8 @@ class Game {
       if (e.key == "r") {
         this.upgrades.showUpgradeShop(this);
       }
-    });
-    addEventListener("keyup", (e) => {
+    };
+    this.keyupListener = (e) => {
       if (e.key == "d") {
         this.pressed_keys.d = false;
       }
@@ -1245,7 +1259,11 @@ class Game {
       if (e.key == "e") {
         this.switchOnce = true;
       }
-    });
+    };
+
+    // Add event listeners
+    addEventListener("keydown", this.keydownListener);
+    addEventListener("keyup", this.keyupListener);
 
     // Start the animation loop
     this.lastFrameTime = performance.now();
@@ -1303,7 +1321,7 @@ window.game = game;
 preloadImages(imagePaths)
   .then(() => {
     console.log("All images preloaded successfully!");
-    // game.playCollect(); // Start the game loop
+    game.playCollect(); // Start the game loop
   })
   .catch((error) => {
     console.error(error);
