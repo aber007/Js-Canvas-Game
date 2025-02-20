@@ -38,6 +38,15 @@ export class Upgrades {
       game.health += 1;
     }
   }
+  multishotMultiplier() {
+    if (upgrades["multishot2"].unlocked) {
+      return 3;
+    } else if (upgrades["multishot1"].unlocked) {
+      return 2;
+    } else {
+      return 1;
+    }
+  }
 
   
   

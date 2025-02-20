@@ -5,6 +5,7 @@ import { Player } from "./player.js";
 import { Upgrades } from "./upgrades.js";
 import { Block, CannonBall, Enemy } from "./objects.js";
 import { displayTextBox, displayTextBoxSeries } from "./text_functions.js";
+import { upgrades } from "./upgradevalues.js";
 
 canvas.width = 1536;
 canvas.height = 768;
@@ -376,7 +377,8 @@ function randomIntFromRange(min, max) {
 }
 
 class Cannon {
-  constructor() {
+  constructor(game) {
+    this.game = game;
     this.x = 32 * 8;
     this.y = canvas.height / 2;
     this.cannonBalls = [];
@@ -480,17 +482,25 @@ class Cannon {
     // Get loactio of the tip of the cannon
     const tipX = this.centerX + Math.cos(this.angle) * 64;
     const tipY = this.centerY + Math.sin(this.angle) * 64;
-
-    this.cannonBalls.push(
-      new CannonBall(
-        tipX,
-        tipY - size / 2,
-        size,
-        size,
-        this.cannonBallAngle,
-        specialBall
-      )
-    );
+    for (let i = 0; i < game.upgrades.multishotMultiplier(); i++) {
+      console.log(game.upgrades.multishotMultiplier());
+      this.cannonBalls.push(
+        new CannonBall(
+          tipX,
+          tipY - size / 2,
+          size,
+          size,
+          this.cannonBallAngle + i * 0.1,
+          specialBall,
+          game.upgrades.multishotMultiplier() > 1 && specialBall === ""
+            ? randomIntFromRange(4, 7)
+            : 0
+        )
+      );
+      if (specialBall != "") {
+        break;
+      }
+    }
   }
 
   update() {
@@ -511,11 +521,12 @@ class Game {
     this.towerDefense = false;
 
     this.player = new Player(canvas, ctx, this);
-    this.cannon = new Cannon();
+    this.cannon = new Cannon(this);
     this.grids = grids;
     this.lastFrameTime = 0; // Track the last frame timestamp
     this.fpsInterval = 1000 / 60; // Desired time per frame (60 FPS)
     this.currentFrame = 0;
+    this.textureCooldown = false;
 
     this.leftx = this.player.x - canvas.width / 2;
     this.rightx = this.player.x + canvas.width / 2;
@@ -597,9 +608,9 @@ class Game {
     this.playerReady = false;
     this.health = 10;
     this.maxHealth = 10;
-    this.yellow = 0;
-    this.gray = 0;
-    this.blue = 0;
+    this.yellow = 1000;
+    this.gray = 1000;
+    this.blue = 1000;
   }
 
   getRandomTexture() {
@@ -614,11 +625,19 @@ class Game {
 
   infinitewalk() {
     // Get the rightmost and leftmost grid
-
     let rightmost = this.grids[0][this.grids[0].length - 1].x;
-
-    if (this.rightx >= rightmost && this.player.movement_direction == 1) {
+    if (
+      this.rightx >= rightmost &&
+      this.player.movement_direction == 1 &&
+      this.textureCooldown == false
+    ) {
+      this.textureCooldown = true;
+      // Load new grid texture
       load(this.getRandomTexture(), this.grids[0].length);
+    } else {
+      if ((this.timer / 60) % 1 == 0) {
+        this.textureCooldown = false;
+      }
     }
   }
 
@@ -1020,7 +1039,6 @@ class Game {
         }
       }
     }
-    console.log(this.enemies);
 
     // Update and draw the enemies
     for (let enemy of this.enemies) {
@@ -1141,10 +1159,21 @@ class Game {
       displayTextBox(
         "Use the mouse to aim and left click or hold to shoot. Right click to use your special cannonball. \n\n Press E to close."
       );
+      this.cannonJustStarted = false;
     }
     unload();
     this.removeListeners();
     this.x = canvas.width / 2;
+
+    // Remove overlays
+    const overlayhue = document.getElementById("overlayhue");
+    overlayhue.style.backgroundColor = `rgba(0,0,0,0)`;
+    const nightoverlay = document.getElementById("nightoverlay");
+    nightoverlay.style.backgroundColor = `rgba(8,8,8,0)`;
+    ctx.globalAlpha = 0;
+    ctx.fillStyle = `rgb(${0},${0},${0})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1;
 
     this.blocks = [];
     this.towerDefense = true;
@@ -1210,7 +1239,7 @@ class Game {
     ];
     if (this.justStarted) {
       this.justStarted = false;
-      displayTextBoxSeries(introTexts);
+      // displayTextBoxSeries(introTexts);
     }
 
     // Define event listeners

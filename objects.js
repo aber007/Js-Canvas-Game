@@ -107,6 +107,7 @@ export class Enemy extends Block {
     this.y = randomIntFromRange(128, this.canvas.height - 128);
     this.x = this.canvas.width + 64;
     this.initalvx = randomIntFromRange(0.1, 0.24);
+    this.canBeHit = true;
 
     this.hitBy = [];
 
@@ -184,11 +185,11 @@ export class Enemy extends Block {
             this.hp -= game.cannon.specialDamage;
           }
           if (ball.special != "pierce") {
-
             ball.killCannonBall();
           }
           if (this.hp <= 0) {
             // Remove self from the enemies array
+            this.canBeHit = false;
             this.animateDeath();
           } else {
             this.animateHit();
@@ -208,23 +209,31 @@ export class Enemy extends Block {
 
     this.x -= 0.4;
     this.draw(this.ctx);
-    this.checkCollisionWithCannonBall();
+    if (this.canBeHit) {
+      this.checkCollisionWithCannonBall();
+    }
   }
 }
 
 export class CannonBall extends Block {
-  constructor(x, y, width, height, angle, special) {
-    super(x, y, width, height);
+  constructor(x, y, width, height, angle, special, speed) {
+    super(x, y, width, height, game);
     this.x = x;
     this.y = y;
     this.angle = angle;
-    this.vx = game.cannon.ballSpeed;
-    if (game.cannon.ballSpeed * this.angle < -game.cannon.ballSpeed) {
-      this.vy = -game.cannon.ballSpeed;
-    } else if (game.cannon.ballSpeed * this.angle > game.cannon.ballSpeed) {
-      this.vy = game.cannon.ballSpeed;
+    this.vx = game.cannon.ballSpeed + speed;
+    if (
+      (game.cannon.ballSpeed + speed) * this.angle <
+      -(game.cannon.ballSpeed + speed)
+    ) {
+      this.vy = -(game.cannon.ballSpeed + speed);
+    } else if (
+      (game.cannon.ballSpeed + speed) * this.angle >
+      game.cannon.ballSpeed + speed
+    ) {
+      this.vy = game.cannon.ballSpeed + speed;
     } else {
-      this.vy = game.cannon.ballSpeed * this.angle;
+      this.vy = (game.cannon.ballSpeed + speed) * this.angle;
     }
     this.color = "black";
     this.alive = true;
@@ -238,6 +247,26 @@ export class CannonBall extends Block {
     ctx.fill();
     ctx.closePath();
   }
+  playerRequiresAimingHelp() {
+    // aim sligtly towaeards the closest enemy
+    let enemyDistances = [];
+    if(game.enemies.length == 0){
+      return;
+    }
+    for (let enemy of game.enemies) {
+      enemyDistances.push(
+        Math.sqrt((this.x - enemy.x) ** 2 + (this.y - enemy.y) ** 2)
+      );
+    }
+    const closestEnemy =
+      game.enemies[enemyDistances.indexOf(Math.min(...enemyDistances))];
+    if (closestEnemy.y < this.y) {
+      this.vy -= 0.1 + (0.3*game.upgrades.upgrades["homing2"].unlocked)  + game.gravity;;
+    } else {
+      this.vy += 0.01 + (0.01*game.upgrades.upgrades["homing2"].unlocked)
+    }
+  }
+
   update() {
     if (this.alive) {
       this.x += this.vx;
@@ -245,6 +274,9 @@ export class CannonBall extends Block {
       this.vy += game.gravity;
       this.vy *= game.airResistance;
       this.vx *= game.airResistance;
+      if (game.upgrades.upgrades["homing1"].unlocked && this.special == "") {
+        this.playerRequiresAimingHelp();
+      }
       if (this.y > this.canvas.height) {
         this.alive = false;
       }
