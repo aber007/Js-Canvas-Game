@@ -20,7 +20,6 @@ export async function displayTextBoxSeries(texts, duration = 0) {
 export async function displayTextBox(text, duration = 0) {
     // Remove any existing text boxes
     const textBoxes = document.getElementsByClassName("text-box");
-    console.log("Removing " + textBoxes.length + " text boxes");
     for (let textBox of textBoxes) {
       document.body.removeChild(textBox);
     }
