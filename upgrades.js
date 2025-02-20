@@ -32,6 +32,10 @@ export class Upgrades {
     game.maxTimer += 20 * 60;
     game.timer += 20 * 60;
   }
+  increaseAttackSpeed(game) {
+    console.log("Increasing attack speed");
+    game.cannon.normalMaxCooldown -= 0.23;
+  }
   regenerateHealth(game) {
     if ((game.timer / 60) % 30 == 0 && upgrades["regen1"].unlocked && game.timer != game.maxTimer && game.health < game.maxHealth && game.timer > 0) {
       console.log("Regenerating health");
@@ -124,10 +128,10 @@ export class Upgrades {
                 upgrade.y = defaulty;
               break;
               case "hp1":
-                upgrade.y = defaulty * 2.8;
+                upgrade.y = defaulty * 3.1;
                 break
               case "speed1":
-                upgrade.y = defaulty * 4.6;
+                upgrade.y = defaulty * 4.9;
                 break
               default:
                 upgrade.y = defaulty;

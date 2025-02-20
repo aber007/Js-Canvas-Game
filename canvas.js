@@ -615,7 +615,7 @@ class Game {
 
   getRandomTexture() {
     while (true) {
-      const random = randomIntFromRange(1, 7);
+      const random = randomIntFromRange(1, 9);
       if (random != this.currentTexturenr) {
         this.currentTexturenr = random;
         return random;
@@ -1075,16 +1075,16 @@ class Game {
     if (elapsed > this.fpsInterval) {
       this.lastFrameTime = timestamp;
       this.currentFrame++;
+      if (this.cannon.specialCooldown > 0) {
+        this.cannon.specialCooldown -= 1 / 60;
+      }
+      if (this.cannon.normalCooldown > 0) {
+        this.cannon.normalCooldown -= 1 / 60;
+      }
       if (this.currentFrame > 20) {
         // 20 frames per animation
         this.currentFrame = 0;
         this.doAnimations();
-        if (this.cannon.specialCooldown > 0) {
-          this.cannon.specialCooldown -= 1 / 3;
-        }
-        if (this.cannon.normalCooldown > 0) {
-          this.cannon.normalCooldown -= 1 / 3;
-        }
       }
 
       // Update game logic
@@ -1130,7 +1130,7 @@ class Game {
     nightoverlay.style.backgroundColor = `rgba(8,8,8,0)`;
     this.player.x = canvas.width / 2;
     this.player.inverseX = canvas.width / 2;
-    this.player.y = canvas.height - 256;
+    this.player.y = canvas.height - 400;
     this.player.playerOffset = -600;
     this.player.playery = 0;
 

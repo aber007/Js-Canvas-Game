@@ -81,6 +81,50 @@ upgrades["multishot2"] = {
     costblue: 0,
     description: "Three shots. Because overkill is underrated.",
 };
+upgrades["attackspeed1"] = {
+    name: "Faster Balls",
+    id: "attackspeed1",
+    previous: "dmg2",
+    unlocked: false,
+    function: "increaseAttackSpeed(game)",
+    costgray: 1,
+    costyellow: 0,
+    costblue: 0,
+    description: "Increase attack speed slightly.",
+};
+upgrades["attackspeed2"] = {
+    name: "Speedy Balls",
+    id: "attackspeed2",
+    previous: "attackspeed1",
+    unlocked: false,
+    function: "increaseAttackSpeed(game)",
+    costgray: 2,
+    costyellow: 1,
+    costblue: 0,
+    description: "Increase attack speed further.",
+};
+upgrades["attackspeed3"] = {
+    name: "Fast Balls",
+    id: "attackspeed3",
+    previous: "attackspeed2",
+    unlocked: false,
+    function: "increaseAttackSpeed(game)",
+    costgray: 3,
+    costyellow: 2,
+    costblue: 0,
+    description: "Increase attack speed even further.",
+};
+upgrades["attackspeed4"] = {
+    name: "Speed of Sound",
+    id: "attackspeed4",
+    previous: "attackspeed3",
+    unlocked: false,
+    function: "increaseAttackSpeed(game)",
+    costgray: 4,
+    costyellow: 3,
+    costblue: 1,
+    description: "You're now speed",
+};
 upgrades["bigball"] = {
     name: "Big Balls",
     id: "bigball",
