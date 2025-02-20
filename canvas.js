@@ -576,7 +576,7 @@ class Game {
     this.inventory = [];
 
     this.upgradeShopVisible = false;
-    this.maxTimer = 5 * 60; //Seconds times framerate
+    this.maxTimer = 120 * 60; //Seconds times framerate
     this.timer = 0;
     this.weather = 0;
 
@@ -1208,10 +1208,9 @@ class Game {
       "Just kidding, you might be fine. Probably... The last guy was *mostly* fine. Well, the parts I found were.",
       "Well, good luck. \n\nPress 'E' to continue.",
     ];
-
     if (this.justStarted) {
       this.justStarted = false;
-      // displayTextBoxSeries(introTexts);
+      displayTextBoxSeries(introTexts);
     }
 
     // Define event listeners
