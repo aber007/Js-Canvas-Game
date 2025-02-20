@@ -34,7 +34,7 @@ export class Upgrades {
   }
   increaseAttackSpeed(game) {
     console.log("Increasing attack speed");
-    game.cannon.normalMaxCooldown -= 0.23;
+    game.cannon.normalMaxCooldown *= 0.8;
   }
   regenerateHealth(game) {
     if ((game.timer / 60) % 30 == 0 && upgrades["regen1"].unlocked && game.timer != game.maxTimer && game.health < game.maxHealth && game.timer > 0) {

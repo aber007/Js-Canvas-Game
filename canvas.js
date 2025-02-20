@@ -184,6 +184,23 @@ function applyTextureData(data, offset) {
       grid.img2.src = data[key].img2 || "";
       grid.collidable = data[key].collidable || false;
       grid.walkable = data[key].walkable || false;
+
+      if (data[key].walkable && grid.img.src.includes("sheet_") && grid.x > canvas.width / 2) {
+        // Chance to add a block at that row
+        if (Math.random() < 0.1) {
+          // Decide color of block (value)
+          let color = "gray";
+          const value = Math.random();
+          if (value < 0.05) {
+            color = "blue";
+          } else if (value < 0.3) {
+            color = "yellow";
+          }
+          console.log("Grid: " + grid.coord + " is walkable");
+          // add outline
+          game.blocks.push(new Block(grid.x-canvas.width/2+48, grid.y-32, 32, 32, color));
+        }
+      }
     } else {
       // Create a new grid if it doesn't exist
       let x = (col + offset) * 32 * 4;
@@ -211,18 +228,6 @@ function applyTextureData(data, offset) {
           let y = row[0].y;
           let grid = new Grid(x, y, "lightblue");
           row.push(grid);
-        }
-        // Chance to add a block at that row
-        if (Math.random() < 0.01) {
-          // Decide color of block (value)
-          let color = "gray";
-          const value = Math.random();
-          if (value < 0.1) {
-            color = "blue";
-          } else if (value < 0.4) {
-            color = "yellow";
-          }
-          game.blocks.push(new Block(x + 64, canvas.height / 2, 32, 32, color));
         }
       }
     }
@@ -1005,7 +1010,6 @@ class Game {
     }
 
     for (const block of this.blocks) {
-      block.update();
       block.draw(ctx, this.mouse);
     }
     // Update and draw the player

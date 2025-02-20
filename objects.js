@@ -71,29 +71,27 @@ export class Block {
     // Get the grids position from the left side of the canvas
   }
 
-  update() {
-    this.get_current_grid();
+  // update() {
+  //   this.get_current_grid();
 
-    // Check if block is outside of the canvas
+  //   // Check if block is outside of the canvas
 
-    // Update position
+  //   // Update position
 
-    // Collide with grid
-    this.vy += game.gravity;
-    this.y += this.vy;
+  //   // Collide with grid
+  //   this.vy += game.gravity;
+  //   this.y += this.vy;
 
-    if (this.current_grid) {
-      if (
-        this.current_grid.walkable &&
-        this.vy > 0 // Falling downward
-      ) {
-        this.y = this.current_grid.y - this.height;
-        this.vy = -this.vy * this.elasticity;
-      }
-    }
-
-    // Call grab method to check if the block should be grabbed
-  }
+  //   if (this.current_grid) {
+  //     if (
+  //       this.current_grid.walkable &&
+  //       this.vy > 0 // Falling downward
+  //     ) {
+  //       this.y = this.current_grid.y - this.height;
+  //       this.vy = -this.vy * this.elasticity;
+  //     }
+  //   }
+  // }
 }
 
 export class Enemy extends Block {
@@ -111,7 +109,7 @@ export class Enemy extends Block {
 
     this.hitBy = [];
 
-    this.hp = 3;
+    this.hp = 3 + randomIntFromRange(game.round, 2*game.round);
 
     setTimeout(() => {
       this.animateFly();
@@ -205,6 +203,12 @@ export class Enemy extends Block {
     this.x -= this.initalvx;
     if (this.y > this.canvas.height + 128) {
       this.y = this.canvas.height - 256;
+    }
+
+    if (this.x < 256) {
+      const index = game.enemies.indexOf(this);
+      game.enemies.splice(index, 1);
+      game.health -= 2;
     }
 
     this.x -= 0.4;
