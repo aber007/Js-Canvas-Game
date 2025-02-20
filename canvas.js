@@ -760,8 +760,6 @@ class Game {
           0,
           0.3 - (this.maxTimer / 1000 - this.timer / 1000) * 0.5
         );
-
-
       } else if (event == 1) {
         // Rain
         oppacity = 0.1;
@@ -781,13 +779,16 @@ class Game {
         blue = Math.max(50, Math.floor((1 - this.timer / this.maxTimer) * 255));
         oppacity = 0.5;
 
-        const gradient = ctx.createLinearGradient(canvas.width/2, canvas.height/2, canvas.width/2, canvas.height);
+        const gradient = ctx.createLinearGradient(
+          canvas.width / 2,
+          canvas.height / 2,
+          canvas.width / 2,
+          canvas.height
+        );
         gradient.addColorStop(1, "rgba(225, 215, 229, 1)");
         gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
         ctx.fillStyle = gradient;
-        ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
-        
-
+        ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
       } else if (event == 3) {
         // Thunder
         this.maxRainDrops = 900;
@@ -1303,7 +1304,7 @@ window.game = game;
 preloadImages(imagePaths)
   .then(() => {
     console.log("All images preloaded successfully!");
-    // game.playCollect(); // Start the game loop
+    game.playCollect(); // Start the game loop
   })
   .catch((error) => {
     console.error(error);
