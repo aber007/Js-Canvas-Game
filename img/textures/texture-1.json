@@ -1,1 +1,8 @@
-{"5,0":{"color":"lightblue","img":"img/tower.png","collidable":false,"walkable":false}}
+{
+    "5,0": {
+        "color": "lightblue",
+        "img": "img/tower.png",
+        "collidable": false,
+        "walkable": false
+    }
+}

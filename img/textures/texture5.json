@@ -1,1 +1,282 @@
-{"5,0":{"color":"lightblue","img":"img/tiles/sheet_3.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":true},"5,1":{"color":"lightblue","img":"img/tiles/sheet_35.gif","img2":"img/tiles/sheet_3.gif","collidable":true,"walkable":false},"4,3":{"color":"lightblue","img":"img/tiles/sheet_23.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":true},"4,4":{"color":"lightblue","img":"img/tiles/sheet_35.gif","img2":"img/tiles/sheet_23.gif","collidable":true,"walkable":false},"1,5":{"color":"lightblue","img":"img/tiles/sheet_26.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":true},"5,6":{"color":"lightblue","img":"img/tiles/sheet_37.gif","img2":"img/tiles/sheet_4.gif","collidable":true,"walkable":false},"5,7":{"color":"lightblue","img":"img/tiles/sheet_2.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":true},"5,8":{"color":"lightblue","img":"img/tiles/sheet_4.gif","img2":"img/tiles/sheet_6.gif","collidable":true,"walkable":true},"5,9":{"color":"lightblue","img":"img/tiles/sheet_6.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":true},"5,11":{"color":"lightblue","img":"img/tiles/sheet_6.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":true},"5,10":{"color":"lightblue","img":"img/tiles/sheet_6.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":true},"4,5":{"color":"lightblue","img":"img/tiles/sheet_16.gif","img2":"","collidable":true,"walkable":false},"3,5":{"color":"lightblue","img":"img/tiles/sheet_32.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":false},"2,5":{"color":"lightblue","img":"img/tiles/sheet_32.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":false},"5,5":{"color":"lightblue","img":"img/tiles/sheet_32.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":false},"5,4":{"color":"lightblue","img":"img/tiles/sheet_35.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":false},"5,3":{"color":"lightblue","img":"img/tiles/sheet_16.gif","img2":"","collidable":true,"walkable":false},"5,2":{"color":"lightblue","img":"img/tiles/sheet_32.gif","img2":"img/tiles/sheet_16.gif","collidable":true,"walkable":false},"1,6":{"color":"lightblue","img":"img/tiles/sheet_27.gif","img2":"","collidable":true,"walkable":true},"1,4":{"color":"lightblue","img":"img/tiles/sheet_25.gif","img2":"","collidable":true,"walkable":true},"2,4":{"color":"lightblue","img":"img/tiles/sheet_35.gif","img2":"","collidable":true,"walkable":false},"2,6":{"color":"lightblue","img":"img/tiles/sheet_37.gif","img2":"","collidable":true,"walkable":false},"3,6":{"color":"lightblue","img":"img/tiles/sheet_37.gif","img2":"","collidable":true,"walkable":false},"4,6":{"color":"lightblue","img":"img/tiles/sheet_37.gif","img2":"","collidable":true,"walkable":false},"4,1":{"color":"lightblue","img":"img/tiles/sheet_33.gif","img2":"","collidable":true,"walkable":true},"4,2":{"color":"lightblue","img":"img/tiles/sheet_23.gif","img2":"","collidable":true,"walkable":true},"3,4":{"color":"lightblue","img":"img/tiles/sheet_35.gif","img2":"","collidable":true,"walkable":false},"1,3":{"color":"lightblue","img":"img/tiles/sheet_42.gif","img2":"","collidable":false,"walkable":true},"2,3":{"color":"lightblue","img":"img/tiles/sheet_52.gif","img2":"","collidable":false,"walkable":true},"3,3":{"color":"lightblue","img":"img/tiles/sheet_52.gif","img2":"","collidable":false,"walkable":true},"4,7":{"color":"lightblue","img":"img/tiles/sheet_52.gif","img2":"","collidable":false,"walkable":true},"3,7":{"color":"lightblue","img":"img/tiles/sheet_52.gif","img2":"","collidable":false,"walkable":true},"2,7":{"color":"lightblue","img":"img/tiles/sheet_52.gif","img2":"","collidable":false,"walkable":true},"1,7":{"color":"lightblue","img":"img/tiles/sheet_42.gif","img2":"","collidable":false,"walkable":true},"4,10":{"color":"lightblue","img":"img/tiles/sheet_41.gif","img2":"","collidable":false,"walkable":false},"4,9":{"color":"lightblue","img":"img/tiles/sheet_40.gif","img2":"","collidable":false,"walkable":false},"4,8":{"color":"lightblue","img":"img/tiles/sheet_39.gif","img2":"","collidable":false,"walkable":false},"3,2":{"color":"lightblue","img":"img/tiles/sheet_36.gif","img2":"","collidable":false,"walkable":false},"4,0":{"color":"lightblue","img":"img/tiles/sheet_36.gif","img2":"","collidable":false,"walkable":false},"4,11":{"color":"lightblue","img":"img/tiles/sheet_60.gif","img2":"","collidable":false,"walkable":false}}
+{
+    "5,0": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_3.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": true
+    },
+    "5,1": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_35.gif",
+        "img2": "img/tiles/sheet_3.gif",
+        "collidable": true,
+        "walkable": false
+    },
+    "4,3": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_23.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": true
+    },
+    "4,4": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_35.gif",
+        "img2": "img/tiles/sheet_23.gif",
+        "collidable": true,
+        "walkable": false
+    },
+    "1,5": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_26.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": true
+    },
+    "5,6": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_37.gif",
+        "img2": "img/tiles/sheet_4.gif",
+        "collidable": true,
+        "walkable": false
+    },
+    "5,7": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_2.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": true
+    },
+    "5,8": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_4.gif",
+        "img2": "img/tiles/sheet_6.gif",
+        "collidable": true,
+        "walkable": true
+    },
+    "5,9": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_6.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": true
+    },
+    "5,11": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_6.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": true
+    },
+    "5,10": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_6.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": true
+    },
+    "4,5": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_16.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": false
+    },
+    "3,5": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_32.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": false
+    },
+    "2,5": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_32.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": false
+    },
+    "5,5": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_32.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": false
+    },
+    "5,4": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_35.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": false
+    },
+    "5,3": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_16.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": false
+    },
+    "5,2": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_32.gif",
+        "img2": "img/tiles/sheet_16.gif",
+        "collidable": true,
+        "walkable": false
+    },
+    "1,6": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_27.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": true
+    },
+    "1,4": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_25.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": true
+    },
+    "2,4": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_35.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": false
+    },
+    "2,6": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_37.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": false
+    },
+    "3,6": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_37.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": false
+    },
+    "4,6": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_37.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": false
+    },
+    "4,1": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_33.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": true
+    },
+    "4,2": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_23.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": true
+    },
+    "3,4": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_35.gif",
+        "img2": "",
+        "collidable": true,
+        "walkable": false
+    },
+    "1,3": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_42.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": true
+    },
+    "2,3": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_52.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": true
+    },
+    "3,3": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_52.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": true
+    },
+    "4,7": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_52.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": true
+    },
+    "3,7": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_52.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": true
+    },
+    "2,7": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_52.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": true
+    },
+    "1,7": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_42.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": true
+    },
+    "4,10": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_41.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": false
+    },
+    "4,9": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_40.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": false
+    },
+    "4,8": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_39.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": false
+    },
+    "3,2": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_36.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": false
+    },
+    "4,0": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_36.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": false
+    },
+    "4,11": {
+        "color": "lightblue",
+        "img": "img/tiles/sheet_60.gif",
+        "img2": "",
+        "collidable": false,
+        "walkable": false
+    }
+}

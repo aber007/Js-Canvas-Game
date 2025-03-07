@@ -963,7 +963,6 @@ class Game {
   }
 
   updateCollect = () => {
-    this.updatePlayerSpeed();
     this.infinitewalk();
     this.checkPassiveUpgrades();
 
@@ -1020,12 +1019,8 @@ class Game {
       this.upgrades.showUpgradeShop();
     }
     this.gameHasBeenSwitched = true;
-
-    // Fixes any unalignment of the player
-    if (this.player.inverseX < canvas.width / 2) {
-      this.player.inverseX = canvas.width / 2;
-      this.player.x = canvas.width / 2;
-    }
+    
+    // console.log(this.player.x +" "+ this.player.inverseX + " " + this.player.playerOffset);
   };
 
   updateCannon = () => {
@@ -1282,9 +1277,11 @@ class Game {
     this.keyupListener = (e) => {
       if (e.key == "d") {
         this.pressed_keys.d = false;
+        this.player.rightCollision = false;
       }
       if (e.key == "a") {
         this.pressed_keys.a = false;
+        this.player.leftCollision = false;
       }
       if (e.key == " ") {
         this.pressed_keys.space = false;

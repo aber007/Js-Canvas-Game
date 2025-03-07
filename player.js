@@ -88,7 +88,12 @@ export class Player {
     } catch (e) {
       console.log(e);
     }
-    // Get the grids position from the left side of the canvas
+    // Check if grid is different from last grid
+    if (this.current_grid !== this.lastgrid) {
+      this.lastgrid = this.current_grid;
+      console.log("Grid changed");
+      const change = this.current_grid.x - this.inverseX;
+    }
   }
   checkCollisionWithBlock() {
     // Check if the player is colliding with block
@@ -191,10 +196,11 @@ export class Player {
   update() {
     // Update the player's position
     this.get_current_grid();
-    const yOffset = this.check_collision();
+    this.check_collision();
     this.checkCollisionWithBlock();
     this.applyGravity();
     this.move();
+    this.game.updatePlayerSpeed();
     this.show_player();
     this.redeemCoins();
   }
