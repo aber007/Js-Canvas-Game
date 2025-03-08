@@ -1,62 +1,173 @@
 import { displayTextBox } from "./text_functions.js";
-import { upgrades } from "./upgradevalues.js";
 
 export class Upgrades {
   constructor(canvas, ctx) {
     this.canvas = canvas;
     this.ctx = ctx;
     this.visible = false;
-    this.upgrades = upgrades;
+    this.upgrades = {};
+    this.upgrades["dmg1"] = {
+      name: "Sharper balls",
+      id: "dmg1",
+      previous: "",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Increase damage by 1",
+      x: 0,
+      y: 0,
+    };
+    this.upgrades["dmg2"] = {
+      name: "Flaming hot balls",
+      id: "dmg2",
+      previous: "dmg1",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Increase damage by 1",
+      x: 0,
+      y: 0,
+    };
+    this.upgrades["dmg3"] = {
+      name: "Spiky balls",
+      id: "dmg3",
+      previous: "dmg2",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Increase damage by 1",
+      x: 0,
+      y: 0,
+    };
+    this.upgrades["dmgpercent20"] = {
+      name: "Soul sucking balls",
+      id: "dmgpercent20",
+      previous: "dmg1",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Deal 20% of enemy hp as damage",
+      x: 0,
+      y: 0,
+    };
+    this.upgrades["test1"] = {
+      name: "test1",
+      id: "test1",
+      previous: "dmg2",
+      unlocked: false,
+      repurchase: false,
+      costgray: 1,
+      costyellow: 0,
+      costblue: 0,
+      description: "Deal 20% of enemy hp as damage",
+      x: 0,
+      y: 0,
+    };
+    // this.upgrades["test2"] = {
+    //   name: "test2",
+    //   id: "test2",
+    //   previous: "dmg2",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Deal 20% of enemy hp as damage",
+    //   x: 0,
+    //   y: 0,
+    // }
+    // this.upgrades["test1"] = {
+    //   name: "test1",
+    //   id: "test1",
+    //   previous: "dmgpercent20",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Deal 20% of enemy hp as damage",
+    //   x: 0,
+    //   y: 0,
+    // };
+    // this.upgrades["test2"] = {
+    //   name: "test2",
+    //   id: "test2",
+    //   previous: "dmgpercent20",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Deal 20% of enemy hp as damage",
+    //   x: 0,
+    //   y: 0,
+    // };
+    // this.upgrades["hp1"] = {
+    //   name: "Health",
+    //   id: "hp1",
+    //   previous: "",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Increase health by 1",
+    //   x: 0,
+    //   y: 0,
+    // };
+    // this.upgrades["hp2"] = {
+    //   name: "Health",
+    //   id: "hp2",
+    //   previous: "hp1",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Increase health by 1",
+    //   x: 0,
+    //   y: 0,
+    // };
+    // this.upgrades["coffin"] = {
+    //   name: "Health",
+    //   id: "coffin",
+    //   previous: "hp1",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Increase health by 1",
+    //   x: 0,
+    //   y: 0,
+    // };
+    // this.upgrades["speed1"] = {
+    //   name: "Speed",
+    //   id: "speed1",
+    //   previous: "",
+    //   unlocked: false,
+    //   repurchase: false,
+    //   costgray: 1,
+    //   costyellow: 0,
+    //   costblue: 0,
+    //   description: "Increase move speed by 1",
+    //   x: 0,
+    //   y: 0,
+    // };
     this.lines = {};
     this.fixPositionOfUpgradeButons();
   }
-  // Functions for upgrades
-  increaseDamage(game) {
-    console.log("Increasing damage");
-    game.cannon.normalDamage += 1;
-  }
-  increaseHealth(game) {
-    console.log("Increasing health");
-    game.maxHealth += 5;
-  }
-  increaseSpeed(game) {
-    console.log("Increasing speed");
-    game.player.move_speed += 1;
-  }
-  increaseInventory(game) {
-    console.log("Increasing inventory");
-    game.weightMultiplier += 0.5;
-  }
-  increaseTime(game) {
-    console.log("Increasing time");
-    game.maxTimer += 20 * 60;
-    game.timer += 20 * 60;
-  }
-  increaseAttackSpeed(game) {
-    console.log("Increasing attack speed");
-    game.cannon.normalMaxCooldown *= 0.8;
-  }
-  regenerateHealth(game) {
-    if ((game.timer / 60) % 30 == 0 && upgrades["regen1"].unlocked && game.timer != game.maxTimer && game.health < game.maxHealth && game.timer > 0) {
-      console.log("Regenerating health");
-      game.health += 1;
-    }
-  }
-  multishotMultiplier() {
-    if (upgrades["multishot2"].unlocked) {
-      return 3;
-    } else if (upgrades["multishot1"].unlocked) {
-      return 2;
-    } else {
-      return 1;
-    }
-  }
-
-  
-  
   fixPositionOfUpgradeButons() {
     // Set level
-    for (let value of Object.values(this.upgrades)) {
+    for (let [upgrade, value] of Object.entries(this.upgrades)) {
       let level = 0;
       let original = value;
       while (value.previous != "") {
@@ -66,7 +177,7 @@ export class Upgrades {
       original.level = level;
     }
     let trees = {};
-    for (let value of Object.values(this.upgrades)) {
+    for (let [upgrade, value] of Object.entries(this.upgrades)) {
       const original = value;
       while (value.previous != "") {
         value = this.upgrades[value.previous];
@@ -100,8 +211,7 @@ export class Upgrades {
 
       for (let upgrade of tree) {
         upgrade.x = upgrade.level * 120;
-        const defaulty = 200;
-        const offset = 100
+        const defaulty = 120;
         if (upgrade.amount > 1) {
           // create a new subtree only containing upgrades of the same level
           let subtree = [];
@@ -110,44 +220,34 @@ export class Upgrades {
               subtree.push(upgrade2);
             }
           }
-          // Find first common ancestor
-          let commonAncestor = upgrade;
-          while (commonAncestor.previous != "") {
-            commonAncestor = this.upgrades[commonAncestor.previous];
-          }
           const levelHeight = 120 * subtree.length;
           upgrade.y =
-            commonAncestor.y +
+            this.upgrades[upgrade.previous].y +
             50 -
             levelHeight / 2 +
             subtree.indexOf(upgrade) * 120;
         } else {
           if (upgrade.level == 0) {
             // set starting y value
-            switch (upgrade.id) {
-              case "dmg1":
-                upgrade.y = offset + defaulty;
-              break;
-              case "hp1":
-                upgrade.y = offset + defaulty * 3.1;
-                break
-              case "speed1":
-                upgrade.y = offset + defaulty * 4.9;
-                break
-              default:
-                upgrade.y = offset + defaulty;
+            let maxY = 0;
+            for (let upgrade3 of Object.values(this.upgrades)) {
+              console.log(upgrade3.name + "Should has Y of: " + upgrade3.y);
+              if (upgrade3.y > maxY) {
+                maxY = upgrade3.y + 120;
+              }
             }
+            console.log("Upgrade " + upgrade.name + "Should be on " + maxY);
+            upgrade.y = defaulty + maxY;
           } else {
             // inherit y from previous upgrade
             upgrade.y = this.upgrades[upgrade.previous].y;
           }
         }
-        upgrade.x += 50;
       }
     }
   }
 
-  showUpgradeShop(game) {
+  showUpgradeShop(gray, yellow, blue) {
     const upgradebackground = document.createElement("div");
     upgradebackground.id = "upgradebackground";
     upgradebackground.className = "upgradebackground";
@@ -172,7 +272,7 @@ export class Upgrades {
         const buttonSize = 100;
         const x1 = value.x + buttonSize / 2;
         const y1 = value.y + buttonSize / 2;
-        const x2 = previousUpgrade.x + buttonSize / 2;
+        const x2 = previousUpgrade.x + buttonSize / 2; 
         const y2 = previousUpgrade.y + buttonSize / 2;
         const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
         const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
@@ -211,16 +311,15 @@ export class Upgrades {
           }
         }
         if (
-          game.gray >= value.costgray &&
-          game.yellow >= value.costyellow &&
-          game.blue >= value.costblue
+          gray >= value.costgray &&
+          yellow >= value.costyellow &&
+          blue >= value.costblue
         ) {
           // Buy upgrade
-          game.gray -= value.costgray;
-          game.yellow -= value.costyellow;
-          game.blue -= value.costblue;
+          gray -= value.costgray;
+          yellow -= value.costyellow;
+          blue -= value.costblue;
           value.unlocked = true;
-          eval("this." + value.function);
           displayTextBox("Bought " + value.name + "!", 2000);
           upgradebutton.style.border = "2px solid rgb(0, 255, 0)";
 
