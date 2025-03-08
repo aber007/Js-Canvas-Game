@@ -4,8 +4,8 @@ let canvas = document.querySelector("canvas");
 const block_type = {
   "-3": "grass",
   "-2": "dirt",
-  "-1": "stone+grass",
-  0: "stone",
+  "-1": "rock+grass",
+  0: "rock",
   1: "water",
 };
 let numRows = 6;
@@ -24,13 +24,56 @@ let isDrawing = false;
 let isDeleting = false;
 let current_img = `img/tiles/sheet_${img_nr}.gif`;
 
+class procedualGeneration {
+  constructor() {
+    this.xPos = 0
+    this.yPos = 5
+    this.maxY = 5
+    this.minY = 2
+  }
+  next(){
+    this.yPos += this.getElevationChange();
+    this.drawColumn();
+    console.log(this.yPos)
+    this.xPos += 1
+  }
+  getElevationChange(){
+    if (Math.random() < 0.3) {
+      if (Math.random() < 0.5) {
+        if (this.yPos === this.maxY) {
+          return -1;
+        } else {
+          return 1;
+        }
+      } else {
+        if (this.yPos === this.minY) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }
+    } else {
+      // Move forward
+      return 0;
+    }
+  }
+  drawColumn(){
+    for(let i=this.yPos; i <=this.maxY; i++){
+
+    }
+  }
+}
+
+const procedual = new procedualGeneration()
+
 function getImgType(grid) {
-  console.log(grid.coord);
   // Check the nearby grids of their type
   let n = undefined;
   let s = undefined;
   let e = "side";
   let w = "side";
+  let ne = "side";
+  let nw = "side";
   try {
     n = grids[grid.coord[0] - 1][grid.coord[1]].type;
   } catch (e) {}
@@ -43,32 +86,51 @@ function getImgType(grid) {
   try {
     w = grids[grid.coord[0]][grid.coord[1] - 1].type;
   } catch (e) {}
+  try {
+    ne = grids[grid.coord[0] - 1][grid.coord[1] + 1].type;
+  } catch (e) {}
+  try {
+    nw = grids[grid.coord[0] - 1][grid.coord[1] - 1].type;
+  } catch (e) {}
 
-  console.log("N:" + n + " S:" + s + " E:" + e + " W:" + w);
   if (n === undefined) {
     if ((e === grid.type || e == "side") && (w === grid.type || w == "side")) {
       return `img/tiles/dynamic_tile_names/${grid.type}/top.gif`;
-    } else if (e === grid.type && w === undefined) {
+    } else if ((e === grid.type || e === "side") && w === undefined) {
       return `img/tiles/dynamic_tile_names/${grid.type}/corner_left.gif`;
-    } else if (w === grid.type && e === undefined) {
+    } else if ((w === grid.type || w === "side") && e === undefined) {
       return `img/tiles/dynamic_tile_names/${grid.type}/corner_right.gif`;
     } else {
       return `img/tiles/dynamic_tile_names/${grid.type}/top_thin.gif`;
     }
   }
   if (n !== undefined) {
-    if (e === grid.type && w === grid.type) {
-      return `img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`;
-    } else if (e === grid.type && w === undefined) {
-      return `img/tiles/dynamic_tile_names/${grid.type}/left.gif`;
-    } else if (w === grid.type && e === undefined) {
-      return `img/tiles/dynamic_tile_names/${grid.type}/right.gif`;
+    if ((e === grid.type || e == "side") && (w === grid.type || w == "side")) {
+      if (ne === undefined && nw === undefined) {
+        return `img/tiles/dynamic_tile_names/${grid.type}/top.gif`;
+      } else if (nw === undefined) {
+        return `img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_left.gif`;
+      } else if (ne === undefined) {
+        return `img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_right.gif`;
+      } else {
+        return `img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`;
+      }
+    } else if ((e === grid.type || e === "side") && (w === undefined || w == "side")) {
+      if (ne === undefined) {
+        return `img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_right.gif`;
+      } else {
+        return `img/tiles/dynamic_tile_names/${grid.type}/left.gif`;
+      }
+    } else if ((w === grid.type || w === "side") && (e === undefined || e == "side")) {
+      if (nw === undefined) {
+        return `img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_left.gif`;
+      } else {
+        return `img/tiles/dynamic_tile_names/${grid.type}/right.gif`;
+      }
     } else {
       return `img/tiles/dynamic_tile_names/${grid.type}/side_thin.gif`;
     }
   }
-
-  return `img/tiles/sheet_${img_nr}.gif`;
 }
 
 function updateAllGrids() {
@@ -84,17 +146,25 @@ function updateAllGrids() {
   }
 }
 
-function drawGrid(e) {
-  let x = e.clientX - canvas.getBoundingClientRect().left;
-  let y = e.clientY - canvas.getBoundingClientRect().top;
-  let grid = grids[Math.floor(y / GRID_SIZE)][Math.floor(x / GRID_SIZE)];
+function drawGrid(e = null, gridCoord = null) {
+  let grid;
+  if (!gridCoord) {
+    let x = e.clientX - canvas.getBoundingClientRect().left;
+    let y = e.clientY - canvas.getBoundingClientRect().top;
+    grid = grids[Math.floor(y / GRID_SIZE)][Math.floor(x / GRID_SIZE)];
+  } else {
+    grid = gridCoord
+  }
   grid.type = block_type[img_nr];
   current_img = getImgType(grid);
 
   let save_img2_src = "";
 
-  if (grid.img.src.includes("sheet_")) {
-    save_img2_src = "img/tiles/" + grid.img.src.split("/").pop();
+  if (img_nr >= 2) {
+    console.log("img_nr: " + img_nr);
+    if (grid.img.src.includes("sheet_")) {
+      save_img2_src = "img/tiles/" + grid.img.src.split("/").pop();
+    }
   }
 
   grid.img.src = current_img;
@@ -130,6 +200,7 @@ function deleteGrid(e) {
 
   // Clear the canvas section and redraw the default grid
   ctx.clearRect(grid.x, grid.y, grid.width, grid.height);
+  updateAllGrids();
 }
 
 addEventListener("keydown", (e) => {
@@ -389,11 +460,9 @@ function edit() {
       // Calculate grid position based on the last mouse position
       let gridX = Math.floor(lastMouseY / GRID_SIZE);
       let gridY = Math.floor(lastMouseX / GRID_SIZE);
-      console.log(gridX, gridY);
 
       let grid = grids[gridX][gridY];
       if (!grid) return; // Ensure the grid cell exists
-      console.log(grid.type);
 
       // Toggle properties based on the key pressed
       if (e.key == "c") {
@@ -409,11 +478,15 @@ function edit() {
         savefile[grid.coord].walkable = grid.walkable;
         console.log("Walkable is: " + grid.walkable);
       }
+      if (e.key == "g") {
+        procedual.next();
+      }
     });
 
     canvas.addEventListener("mousedown", (e) => {
       if (e.button === 0) {
         // Left button
+        console.log(savefile)
         isDrawing = true;
         drawGrid(e);
       } else if (e.button === 2) {
