@@ -1,13 +1,20 @@
 console.log("editor.js loaded");
 let canvas = document.querySelector("canvas");
 
+const block_type = {
+  "-3": "grass",
+  "-2": "dirt",
+  "-1": "stone+grass",
+  0: "stone",
+  1: "water",
+};
 let numRows = 6;
 let numCols = 12;
 canvas.width = 1536;
 const GRID_SIZE = canvas.width / numCols;
 canvas.height = GRID_SIZE * numRows;
 
-let img_nr = 2;
+let img_nr = -3;
 let edit_mode = false;
 
 var ctx = canvas.getContext("2d");
@@ -16,11 +23,30 @@ ctx.imageSmoothingEnabled = false;
 let isDrawing = false;
 let current_img = `img/tiles/sheet_${img_nr}.gif`;
 
+function getImgType(grid) {
+  console.log(grid.coord);
+  // Check the nearby grids of their type
+  const n = grids[grid.coord[0] - 1][grid.coord[1]];
+  const s = grids[grid.coord[0] + 1][grid.coord[1]];
+  const e = grids[grid.coord[0]][grid.coord[1] + 1];
+  const w = grids[grid.coord[0]][grid.coord[1] - 1];
+  console.log("N:");
+  if (n == null && (s === grid.type || null) && (w === grid.type || null)) {
+    return `img/tiles/dynamic_tile_names/${grid.type}/top.gif`;
+  }
+  if (n != null) {
+    return `img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`;
+  }
+
+  return `img/tiles/sheet_${img_nr}.gif`;
+}
 
 function drawGrid(e) {
   let x = e.clientX - canvas.getBoundingClientRect().left;
   let y = e.clientY - canvas.getBoundingClientRect().top;
   let grid = grids[Math.floor(y / GRID_SIZE)][Math.floor(x / GRID_SIZE)];
+  grid.type = block_type[img_nr];
+  current_img = getImgType(grid);
 
   let save_img2_src = "";
 
@@ -83,6 +109,7 @@ class Grid {
     this.height = GRID_SIZE;
     this.coord = [Math.floor(y / GRID_SIZE), Math.floor(x / GRID_SIZE)];
     this.color = color;
+    this.type = null;
     this.collidable = false;
     this.walkable = false;
     this.img = new Image();
@@ -271,6 +298,7 @@ function applyTextureData(data, offset) {
       grid.img2.src = data[key].img2 || "";
       grid.collidable = data[key].collidable || false;
       grid.walkable = data[key].walkable || true;
+      grid.type = block_type[img_nr];
       grids[row][col + offset] = grid;
 
       // Get longest row
@@ -315,10 +343,10 @@ function edit() {
       let gridX = Math.floor(lastMouseY / GRID_SIZE);
       let gridY = Math.floor(lastMouseX / GRID_SIZE);
       console.log(gridX, gridY);
-      console.log(lastMouseX, lastMouseY);
 
       let grid = grids[gridX][gridY];
       if (!grid) return; // Ensure the grid cell exists
+      console.log(grid.type);
 
       // Toggle properties based on the key pressed
       if (e.key == "c") {
@@ -342,9 +370,23 @@ function edit() {
       drawGrid(e);
     });
 
+    let lastGridX = -1;
+    let lastGridY = -1;
+
     canvas.addEventListener("mousemove", (e) => {
       if (isDrawing) {
-        drawGrid(e);
+        let x = Math.floor(
+          (e.clientX - canvas.getBoundingClientRect().left) / GRID_SIZE
+        );
+        let y = Math.floor(
+          (e.clientY - canvas.getBoundingClientRect().top) / GRID_SIZE
+        );
+
+        if (x !== lastGridX || y !== lastGridY) {
+          lastGridX = x;
+          lastGridY = y;
+          drawGrid(e);
+        }
       }
     });
 
@@ -364,10 +406,10 @@ function edit() {
     // Change current img with scroll
     addEventListener("wheel", (e) => {
       if (e.deltaY > 0) {
-        if (img_nr == 71) return;
+        if (img_nr == 1) return;
         img_nr++;
       } else {
-        if (img_nr == 2) return;
+        if (img_nr == -3) return;
         img_nr--;
       }
       // Display the current img
