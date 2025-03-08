@@ -24,21 +24,21 @@ let isDrawing = false;
 let isDeleting = false;
 let current_img = `img/tiles/sheet_${img_nr}.gif`;
 
-class procedualGeneration {
-  constructor() {
-    this.xPos = 0
-    this.yPos = 5
-    this.maxY = 5
-    this.minY = 2
+export class ProcedualGeneration {
+  constructor(xPos) {
+    this.xPos = xPos;
+    this.yPos = 5;
+    this.maxY = 5;
+    this.minY = 2;
   }
-  next(){
+  next() {
     this.yPos += this.getElevationChange();
     this.drawColumn();
-    console.log(this.yPos)
-    this.xPos += 1
+    console.log(this.xPos);
+    this.xPos += 1;
   }
-  getElevationChange(){
-    if (Math.random() < 0.3) {
+  getElevationChange() {
+    if (Math.random() < 0.4) {
       if (Math.random() < 0.5) {
         if (this.yPos === this.maxY) {
           return -1;
@@ -57,14 +57,14 @@ class procedualGeneration {
       return 0;
     }
   }
-  drawColumn(){
-    for(let i=this.yPos; i <=this.maxY; i++){
-
+  drawColumn() {
+    for (let i = this.yPos; i <= this.maxY; i++) {
+      drawGrid(null, [i, this.xPos]);
     }
   }
 }
 
-const procedual = new procedualGeneration()
+const procedual = new ProcedualGeneration(0);
 
 function getImgType(grid) {
   // Check the nearby grids of their type
@@ -115,13 +115,19 @@ function getImgType(grid) {
       } else {
         return `img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`;
       }
-    } else if ((e === grid.type || e === "side") && (w === undefined || w == "side")) {
+    } else if (
+      (e === grid.type || e === "side") &&
+      (w === undefined || w == "side")
+    ) {
       if (ne === undefined) {
         return `img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_right.gif`;
       } else {
         return `img/tiles/dynamic_tile_names/${grid.type}/left.gif`;
       }
-    } else if ((w === grid.type || w === "side") && (e === undefined || e == "side")) {
+    } else if (
+      (w === grid.type || w === "side") &&
+      (e === undefined || e == "side")
+    ) {
       if (nw === undefined) {
         return `img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_left.gif`;
       } else {
@@ -153,7 +159,7 @@ function drawGrid(e = null, gridCoord = null) {
     let y = e.clientY - canvas.getBoundingClientRect().top;
     grid = grids[Math.floor(y / GRID_SIZE)][Math.floor(x / GRID_SIZE)];
   } else {
-    grid = gridCoord
+    grid = grids[gridCoord[0]][gridCoord[1]];
   }
   grid.type = block_type[img_nr];
   current_img = getImgType(grid);
@@ -486,7 +492,7 @@ function edit() {
     canvas.addEventListener("mousedown", (e) => {
       if (e.button === 0) {
         // Left button
-        console.log(savefile)
+        console.log(savefile);
         isDrawing = true;
         drawGrid(e);
       } else if (e.button === 2) {

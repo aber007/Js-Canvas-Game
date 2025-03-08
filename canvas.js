@@ -5,7 +5,6 @@ import { Player } from "./player.js";
 import { Upgrades } from "./upgrades.js";
 import { Block, CannonBall, Enemy } from "./objects.js";
 import { displayTextBox, displayTextBoxSeries } from "./text_functions.js";
-import { upgrades } from "./upgradevalues.js";
 
 canvas.width = 1536;
 canvas.height = 768;
@@ -45,6 +44,7 @@ class Grid {
     this.img = new Image();
     this.img2 = new Image();
     this.back_img = new Image();
+    this.type = undefined;
     this.img.src = "";
     this.img2.src = "";
     this.back_img.src = "";
@@ -184,8 +184,13 @@ function applyTextureData(data, offset) {
       grid.img2.src = data[key].img2 || "";
       grid.collidable = data[key].collidable || false;
       grid.walkable = data[key].walkable || false;
+      grid.type = "grass";
 
-      if (data[key].walkable && grid.img.src.includes("sheet_") && grid.x > canvas.width / 2) {
+      if (
+        data[key].walkable &&
+        grid.img.src.includes("sheet_") &&
+        grid.x > canvas.width / 2
+      ) {
         // Chance to add a block at that row
         if (Math.random() < 0.1) {
           // Decide color of block (value)
@@ -198,7 +203,15 @@ function applyTextureData(data, offset) {
           }
           console.log("Grid: " + grid.coord + " is walkable");
           // add outline
-          game.blocks.push(new Block(grid.x-canvas.width/2+48, grid.y-32, 32, 32, color));
+          game.blocks.push(
+            new Block(
+              grid.x - canvas.width / 2 + 48,
+              grid.y - 32,
+              32,
+              32,
+              color
+            )
+          );
         }
       }
     } else {
@@ -212,6 +225,7 @@ function applyTextureData(data, offset) {
       grid.img2.src = data[key].img2 || "";
       grid.collidable = data[key].collidable || false;
       grid.walkable = data[key].walkable || true;
+      grid.type = "grass";
       game.grids[row][col + offset] = grid;
 
       // Get longest row
@@ -521,9 +535,196 @@ class Cannon {
   }
 }
 
+class ProcedualGeneration {
+  constructor(xPos) {
+    this.xPos = 3;
+    this.yPos = 6;
+    this.maxY = 6;
+    this.minY = 2;
+  }
+  next() {
+    if (this.xPos * 32 * 4 < game.player.inverseX + canvas.width) {
+      this.yPos += this.getElevationChange();
+      this.drawColumn();
+      console.log(this.xPos);
+      this.xPos += 1;
+    }
+  }
+  getElevationChange() {
+    if (Math.random() < 0.4) {
+      if (Math.random() < 0.5) {
+        if (this.yPos === this.maxY) {
+          return -1;
+        } else {
+          return 1;
+        }
+      } else {
+        if (this.yPos === this.minY) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }
+    } else {
+      // Move forward
+      return 0;
+    }
+  }
+  drawColumn() {
+    for (let i = this.yPos; i <= this.maxY; i++) {
+      console.log("Drawing grid: " + [i, this.xPos])
+      this.drawGrid([i, this.xPos]);
+    }
+  }
+  drawGrid(gridCoord) {
+    let grid;
+    grid = game.grids[gridCoord[0]][gridCoord[1]];
+
+    if (!grid) {
+      // Add a new grid column to the grids
+      for (let row of game.grids) {
+        let tempgrid = new Grid(gridCoord[1]*128, gridCoord[0]*128, "lightblue");
+        tempgrid.coord = [game.grids.indexOf(row), game.grids[0].length];
+        tempgrid.img.src = ""
+        tempgrid.img.onload = () => tempgrid.draw();
+        tempgrid.img2.src = ""
+        tempgrid.collidable = false
+        tempgrid.walkable = false
+        tempgrid.type = undefined;
+        row.push(tempgrid)
+      }
+      grid = game.grids[gridCoord[0]][gridCoord[1]];
+
+      console.log(game.grids);
+    }
+
+    grid.type = "grass";
+    grid.walkable = true
+    grid.collidable = true
+    let current_img = this.getImgType(grid);
+
+    let save_img2_src = "";
+
+    if (img_nr >= 2) {
+      console.log("img_nr: " + img_nr);
+      if (grid.img.src.includes("sheet_")) {
+        save_img2_src = "img/tiles/" + grid.img.src.split("/").pop();
+      }
+    }
+
+    grid.img.src = current_img;
+    grid.img.onload = () => {
+      grid.draw();
+    };
+    // Save the current grid
+    let img_name = current_img.split("/")[2];
+    let save_img_src = "img/tiles/" + img_name;
+
+    savefile[grid.coord] = {
+      color: grid.color,
+      img: save_img_src,
+      img2: save_img2_src,
+      collidable: grid.collidable,
+      walkable: grid.walkable,
+    };
+    this.updateAllGrids();
+  }
+  getImgType(grid) {
+    // Check the nearby grids of their type
+    let n = undefined;
+    let s = undefined;
+    let e = "side";
+    let w = "side";
+    let ne = "side";
+    let nw = "side";
+    try {
+      n = game.grids[grid.coord[0] - 1][grid.coord[1]].type;
+    } catch (e) {}
+    try {
+      s = game.grids[grid.coord[0] + 1][grid.coord[1]].type;
+    } catch (e) {}
+    try {
+      e = game.grids[grid.coord[0]][grid.coord[1] + 1].type;
+    } catch (e) {}
+    try {
+      w = game.grids[grid.coord[0]][grid.coord[1] - 1].type;
+    } catch (e) {}
+    try {
+      ne = game.grids[grid.coord[0] - 1][grid.coord[1] + 1].type;
+    } catch (e) {}
+    try {
+      nw = game.grids[grid.coord[0] - 1][grid.coord[1] - 1].type;
+    } catch (e) {}
+
+    if (n === undefined) {
+      if (
+        (e === grid.type || e == "side") &&
+        (w === grid.type || w == "side")
+      ) {
+        return `img/tiles/dynamic_tile_names/${grid.type}/top.gif`;
+      } else if ((e === grid.type || e === "side") && w === undefined) {
+        return `img/tiles/dynamic_tile_names/${grid.type}/corner_left.gif`;
+      } else if ((w === grid.type || w === "side") && e === undefined) {
+        return `img/tiles/dynamic_tile_names/${grid.type}/corner_right.gif`;
+      } else {
+        return `img/tiles/dynamic_tile_names/${grid.type}/top_thin.gif`;
+      }
+    }
+    if (n !== undefined) {
+      if (
+        (e === grid.type || e == "side") &&
+        (w === grid.type || w == "side")
+      ) {
+        if (ne === undefined && nw === undefined) {
+          return `img/tiles/dynamic_tile_names/${grid.type}/top.gif`;
+        } else if (nw === undefined) {
+          return `img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_left.gif`;
+        } else if (ne === undefined) {
+          return `img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_right.gif`;
+        } else {
+          return `img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`;
+        }
+      } else if (
+        (e === grid.type || e === "side") &&
+        (w === undefined || w == "side")
+      ) {
+        if (ne === undefined) {
+          return `img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_right.gif`;
+        } else {
+          return `img/tiles/dynamic_tile_names/${grid.type}/left.gif`;
+        }
+      } else if (
+        (w === grid.type || w === "side") &&
+        (e === undefined || e == "side")
+      ) {
+        if (nw === undefined) {
+          return `img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_left.gif`;
+        } else {
+          return `img/tiles/dynamic_tile_names/${grid.type}/right.gif`;
+        }
+      } else {
+        return `img/tiles/dynamic_tile_names/${grid.type}/side_thin.gif`;
+      }
+    }
+  }
+  updateAllGrids() {
+    for (let row of game.grids) {
+      for (let grid of row) {
+        if (grid.type !== undefined) {
+          grid.img.src = this.getImgType(grid);
+          grid.img.onload = () => {
+            grid.draw();
+          };
+        }
+      }
+    }
+  }
+}
+
 class Game {
   constructor(grids) {
     this.towerDefense = false;
+    this.useProcedualWorldCreation = true;
 
     this.player = new Player(canvas, ctx, this);
     this.cannon = new Cannon(this);
@@ -533,6 +734,7 @@ class Game {
     this.currentFrame = 0;
     this.textureCooldown = false;
 
+    this.procedual = new ProcedualGeneration(this.grids.length);
     this.leftx = this.player.x - canvas.width / 2;
     this.rightx = this.player.x + canvas.width / 2;
     this.pressed_keys = { a: false, d: false, space: false };
@@ -630,18 +832,22 @@ class Game {
 
   infinitewalk() {
     // Get the rightmost and leftmost grid
-    let rightmost = this.grids[0][this.grids[0].length - 1].x;
-    if (
-      this.rightx >= rightmost &&
-      this.player.movement_direction == 1 &&
-      this.textureCooldown == false
-    ) {
-      this.textureCooldown = true;
-      // Load new grid texture
-      load(this.getRandomTexture(), this.grids[0].length);
+    if (this.useProcedualWorldCreation) {
+      this.procedual.next();
     } else {
-      if ((this.timer / 60) % 1 == 0) {
-        this.textureCooldown = false;
+      let rightmost = this.grids[0][this.grids[0].length - 1].x;
+      if (
+        this.rightx >= rightmost &&
+        this.player.movement_direction == 1 &&
+        this.textureCooldown == false
+      ) {
+        this.textureCooldown = true;
+        // Load new grid texture
+        load(this.getRandomTexture(), this.grids[0].length);
+      } else {
+        if ((this.timer / 60) % 1 == 0) {
+          this.textureCooldown = false;
+        }
       }
     }
   }
@@ -964,7 +1170,7 @@ class Game {
 
   updateCollect = () => {
     this.infinitewalk();
-    this.checkPassiveUpgrades();
+    // this.checkPassiveUpgrades();
 
     // update timer
     if (this.player.playerOffset >= 0) {
@@ -1019,7 +1225,7 @@ class Game {
       this.upgrades.showUpgradeShop();
     }
     this.gameHasBeenSwitched = true;
-    
+
     // console.log(this.player.x +" "+ this.player.inverseX + " " + this.player.playerOffset);
   };
 
