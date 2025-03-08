@@ -21,24 +21,67 @@ var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
 let isDrawing = false;
+let isDeleting = false;
 let current_img = `img/tiles/sheet_${img_nr}.gif`;
 
 function getImgType(grid) {
   console.log(grid.coord);
   // Check the nearby grids of their type
-  const n = grids[grid.coord[0] - 1][grid.coord[1]];
-  const s = grids[grid.coord[0] + 1][grid.coord[1]];
-  const e = grids[grid.coord[0]][grid.coord[1] + 1];
-  const w = grids[grid.coord[0]][grid.coord[1] - 1];
-  console.log("N:");
-  if (n == null && (s === grid.type || null) && (w === grid.type || null)) {
-    return `img/tiles/dynamic_tile_names/${grid.type}/top.gif`;
+  let n = undefined;
+  let s = undefined;
+  let e = "side";
+  let w = "side";
+  try {
+    n = grids[grid.coord[0] - 1][grid.coord[1]].type;
+  } catch (e) {}
+  try {
+    s = grids[grid.coord[0] + 1][grid.coord[1]].type;
+  } catch (e) {}
+  try {
+    e = grids[grid.coord[0]][grid.coord[1] + 1].type;
+  } catch (e) {}
+  try {
+    w = grids[grid.coord[0]][grid.coord[1] - 1].type;
+  } catch (e) {}
+
+  console.log("N:" + n + " S:" + s + " E:" + e + " W:" + w);
+  if (n === undefined) {
+    if ((e === grid.type || e == "side") && (w === grid.type || w == "side")) {
+      return `img/tiles/dynamic_tile_names/${grid.type}/top.gif`;
+    } else if (e === grid.type && w === undefined) {
+      return `img/tiles/dynamic_tile_names/${grid.type}/corner_left.gif`;
+    } else if (w === grid.type && e === undefined) {
+      return `img/tiles/dynamic_tile_names/${grid.type}/corner_right.gif`;
+    } else {
+      return `img/tiles/dynamic_tile_names/${grid.type}/top_thin.gif`;
+    }
   }
-  if (n != null) {
-    return `img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`;
+  if (n !== undefined) {
+    if (e === grid.type && w === grid.type) {
+      return `img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`;
+    } else if (e === grid.type && w === undefined) {
+      return `img/tiles/dynamic_tile_names/${grid.type}/left.gif`;
+    } else if (w === grid.type && e === undefined) {
+      return `img/tiles/dynamic_tile_names/${grid.type}/right.gif`;
+    } else {
+      return `img/tiles/dynamic_tile_names/${grid.type}/side_thin.gif`;
+    }
   }
 
   return `img/tiles/sheet_${img_nr}.gif`;
+}
+
+function updateAllGrids() {
+  for (let row of grids) {
+    for (let grid of row) {
+      if (grid.type !== undefined) {
+        grid.img.src = getImgType(grid);
+        grid.img.onload = () => {
+          grid.draw();
+        };
+      }
+    }
+  }
 }
 
 function drawGrid(e) {
@@ -69,6 +112,7 @@ function drawGrid(e) {
     collidable: grid.collidable,
     walkable: grid.walkable,
   };
+  updateAllGrids();
 }
 
 function deleteGrid(e) {
@@ -78,6 +122,9 @@ function deleteGrid(e) {
 
   grid.img.src = "";
   grid.img2.src = "";
+  grid.type = undefined;
+  grid.collidable = false;
+  grid.walkable = false;
 
   delete savefile[grid.coord];
 
@@ -109,7 +156,7 @@ class Grid {
     this.height = GRID_SIZE;
     this.coord = [Math.floor(y / GRID_SIZE), Math.floor(x / GRID_SIZE)];
     this.color = color;
-    this.type = null;
+    this.type = undefined;
     this.collidable = false;
     this.walkable = false;
     this.img = new Image();
@@ -365,9 +412,15 @@ function edit() {
     });
 
     canvas.addEventListener("mousedown", (e) => {
-      if (e.button != 0) return; // Only left button
-      isDrawing = true;
-      drawGrid(e);
+      if (e.button === 0) {
+        // Left button
+        isDrawing = true;
+        drawGrid(e);
+      } else if (e.button === 2) {
+        // Right button
+        isDeleting = true;
+        deleteGrid(e);
+      }
     });
 
     let lastGridX = -1;
@@ -387,20 +440,34 @@ function edit() {
           lastGridY = y;
           drawGrid(e);
         }
+      } else if (isDeleting) {
+        let x = Math.floor(
+          (e.clientX - canvas.getBoundingClientRect().left) / GRID_SIZE
+        );
+        let y = Math.floor(
+          (e.clientY - canvas.getBoundingClientRect().top) / GRID_SIZE
+        );
+
+        if (x !== lastGridX || y !== lastGridY) {
+          lastGridX = x;
+          lastGridY = y;
+          deleteGrid(e);
+        }
       }
     });
 
     canvas.addEventListener("mouseup", () => {
       isDrawing = false;
+      isDeleting = false;
     });
 
     canvas.addEventListener("mouseleave", () => {
       isDrawing = false;
+      isDeleting = false;
     });
 
     canvas.addEventListener("contextmenu", (e) => {
       e.preventDefault(); // Prevent the default context menu
-      deleteGrid(e);
     });
 
     // Change current img with scroll
