@@ -5,6 +5,7 @@ import { Player } from "./player.js";
 import { Upgrades } from "./upgrades.js";
 import { Block, CannonBall, Enemy } from "./objects.js";
 import { displayTextBox, displayTextBoxSeries } from "./text_functions.js";
+import { ProcedualGeneration, updateAllGrids } from "./editor.js";
 
 canvas.width = 1536;
 canvas.height = 768;
@@ -175,10 +176,13 @@ function load(texture_nr = null, offset = 0) {
 
 // Helper function to apply the loaded data to the grid
 function applyTextureData(data, offset) {
+  console.log("Applying texture data with offset:", offset);
+  console.log("Applying texture data:", data);
   for (let key in data) {
     let [row, col] = key.split(",").map(Number); // Parse grid coordinates
     let grid = game.grids[row][col + offset];
     if (grid) {
+      console.log("Grid already exists:", grid.coord);
       grid.img.src = data[key].img || "";
       grid.img.onload = () => grid.draw();
       grid.img2.src = data[key].img2 || "";
@@ -215,6 +219,7 @@ function applyTextureData(data, offset) {
         }
       }
     } else {
+      console.log("Grid doesn't exist, creating new grid:", key);
       // Create a new grid if it doesn't exist
       let x = (col + offset) * 32 * 4;
       let y = row * 32 * 4;
@@ -225,7 +230,7 @@ function applyTextureData(data, offset) {
       grid.img2.src = data[key].img2 || "";
       grid.collidable = data[key].collidable || false;
       grid.walkable = data[key].walkable || true;
-      grid.type = "grass";
+      grid.type = undefined;
       game.grids[row][col + offset] = grid;
 
       // Get longest row
@@ -243,6 +248,19 @@ function applyTextureData(data, offset) {
           let grid = new Grid(x, y, "lightblue");
           row.push(grid);
         }
+      }
+    }
+  }
+  // Verify the grid coordinates
+  for (let i = 0; i < game.grids.length; i++) {
+    for (let j = 0; j < game.grids[i].length; j++) {
+      // Check if type is Grid
+      if (game.grids[i][j] instanceof Grid === false) {
+        console.log("Invalid grid type at: ", i, j, "Fixing broken grid");
+        let x = j * 32 * 4;
+        let y = i * 32 * 4;
+        let grid = new Grid(x, y, "lightblue");
+        game.grids[i][j] = grid; // Replace with a new Grid instance
       }
     }
   }
@@ -535,52 +553,10 @@ class Cannon {
   }
 }
 
-class ProcedualGeneration {
-  constructor(xPos) {
-    this.xPos = 3;
-    this.yPos = 6;
-    this.maxY = 6;
-    this.minY = 2;
-  }
-  next() {
-    if (this.xPos * 32 * 4 < game.player.inverseX + canvas.width) {
-      this.yPos += this.getElevationChange();
-      this.drawColumn();
-      console.log(this.xPos);
-      this.xPos += 1;
-    }
-  }
-  getElevationChange() {
-    if (Math.random() < 0.4) {
-      if (Math.random() < 0.5) {
-        if (this.yPos === this.maxY) {
-          return -1;
-        } else {
-          return 1;
-        }
-      } else {
-        if (this.yPos === this.minY) {
-          return 1;
-        } else {
-          return -1;
-        }
-      }
-    } else {
-      // Move forward
-      return 0;
-    }
-  }
-  drawColumn() {
-    for (let i = this.yPos; i <= this.maxY; i++) {
-      console.log("Drawing grid: " + [i, this.xPos])
-    }
-  }
-}
-
 class Game {
   constructor(grids) {
     this.towerDefense = false;
-    this.useProcedualWorldCreation = false;
+    this.useProcedualWorldCreation = true;
 
     this.player = new Player(canvas, ctx, this);
     this.cannon = new Cannon(this);
@@ -688,22 +664,24 @@ class Game {
 
   infinitewalk() {
     // Get the rightmost and leftmost grid
-    if (this.useProcedualWorldCreation) {
-      this.procedual.next();
-    } else {
-      let rightmost = this.grids[0][this.grids[0].length - 1].x;
-      if (
-        this.rightx >= rightmost &&
-        this.player.movement_direction == 1 &&
-        this.textureCooldown == false
-      ) {
-        this.textureCooldown = true;
-        // Load new grid texture
-        load(this.getRandomTexture(), this.grids[0].length);
+    let rightmost = this.grids[0][this.grids[0].length - 1].x;
+    if (
+      this.rightx >= rightmost &&
+      this.player.movement_direction == 1 &&
+      this.textureCooldown == false
+    ) {
+      this.textureCooldown = true;
+      // Load new grid texture
+      if (this.useProcedualWorldCreation) {
+        let procedualTile = this.procedual.newTile(this.procedual.yPos);
+        applyTextureData(procedualTile, this.grids[0].length);
+        // updateAllGrids(this.grids)
       } else {
-        if ((this.timer / 60) % 1 == 0) {
-          this.textureCooldown = false;
-        }
+        load(this.getRandomTexture(), this.grids[0].length);
+      }
+    } else {
+      if ((this.timer / 60) % 1 == 0) {
+        this.textureCooldown = false;
       }
     }
   }
@@ -1066,6 +1044,7 @@ class Game {
           console.log(e);
           console.log(grid);
           console.log(this.grids);
+          dispatchEvent("error", e);
         }
       }
     }

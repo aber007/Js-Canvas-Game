@@ -31,13 +31,41 @@ export class ProcedualGeneration {
     this.maxY = 5;
     this.minY = 2;
   }
+  newTile(ypos) {
+    unload();
+    this.xPos = 0;
+    this.yPos = ypos;
+    this.maxY = 5;
+    this.minY = 2;
+    for (let i = 0; i < numCols; i++) {
+      this.next();
+    }
+    let tileFile = {};
+    for (let row of grids) {
+      for (let grid of row) {
+        if (grid.type !== undefined) {
+          tileFile[grid.coord] = {
+            color: grid.color,
+            img: grid.img.src.substring(grid.img.src.indexOf("img/tiles/")),
+            img2: "",
+            collidable: true,
+            walkable: true,
+          };
+        }
+      }
+    }
+    return tileFile;
+
+  }
   next() {
     this.yPos += this.getElevationChange();
     this.drawColumn();
-    console.log(this.xPos);
     this.xPos += 1;
   }
   getElevationChange() {
+    if(this.xPos === 0) {
+      return 0;
+    }
     if (Math.random() < 0.4) {
       if (Math.random() < 0.5) {
         if (this.yPos === this.maxY) {
@@ -64,7 +92,6 @@ export class ProcedualGeneration {
   }
 }
 
-const procedual = new ProcedualGeneration(0);
 
 function getImgType(grid) {
   // Check the nearby grids of their type
@@ -139,8 +166,8 @@ function getImgType(grid) {
   }
 }
 
-function updateAllGrids() {
-  for (let row of grids) {
+export function updateAllGrids(sendgrids = grids) {
+  for (let row of sendgrids) {
     for (let grid of row) {
       if (grid.type !== undefined) {
         grid.img.src = getImgType(grid);
@@ -174,19 +201,15 @@ function drawGrid(e = null, gridCoord = null) {
   }
 
   grid.img.src = current_img;
-  grid.img.onload = () => {
-    grid.draw();
-  };
   // Save the current grid
-  let img_name = current_img.split("/")[2];
-  let save_img_src = "img/tiles/" + img_name;
+  let save_img_src = current_img
 
   savefile[grid.coord] = {
     color: grid.color,
     img: save_img_src,
     img2: save_img2_src,
-    collidable: grid.collidable,
-    walkable: grid.walkable,
+    collidable: true,
+    walkable: true,
   };
   updateAllGrids();
 }
@@ -485,7 +508,7 @@ function edit() {
         console.log("Walkable is: " + grid.walkable);
       }
       if (e.key == "g") {
-        procedual.next();
+        procedual.newTile(5);
       }
     });
 
@@ -579,3 +602,4 @@ function edit() {
     removeEventListener("wheel", () => {});
   }
 }
+const procedual = new ProcedualGeneration(0);
