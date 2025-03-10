@@ -176,13 +176,10 @@ function load(texture_nr = null, offset = 0) {
 
 // Helper function to apply the loaded data to the grid
 function applyTextureData(data, offset) {
-  console.log("Applying texture data with offset:", offset);
-  console.log("Applying texture data:", data);
   for (let key in data) {
     let [row, col] = key.split(",").map(Number); // Parse grid coordinates
     let grid = game.grids[row][col + offset];
     if (grid) {
-      console.log("Grid already exists:", grid.coord);
       grid.img.src = data[key].img || "";
       grid.img.onload = () => grid.draw();
       grid.img2.src = data[key].img2 || "";
@@ -219,7 +216,6 @@ function applyTextureData(data, offset) {
         }
       }
     } else {
-      console.log("Grid doesn't exist, creating new grid:", key);
       // Create a new grid if it doesn't exist
       let x = (col + offset) * 32 * 4;
       let y = row * 32 * 4;

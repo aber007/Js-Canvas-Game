@@ -273,13 +273,13 @@ class Grid {
         this.back_img.src = "";
 
         this.outline = "none";
-        if (this.edit_mode) {
+        if (edit_mode) {
             this.draw();
         }
     }
 
     draw(offset = 0) {
-        if (this.img.src && this.edit_mode) {
+        if (this.img.src && edit_mode) {
             if (this.img2.src != "") {
                 ctx.drawImage(
                     this.img2,
@@ -354,14 +354,14 @@ function save() {
         alert("There is nothing to save");
     }
 }
-function unload() {
+export function unload() {
     // Clear the canvas section and redraw the default grid
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     savefile = {}; // Clear the savefile object
     createGrids(); // Recreate the grids
 }
 
-function load(texture_nr = null, offset = 0) {
+export function load(texture_nr = null, offset = 0) {
     if (texture_nr !== null) {
         // Automatically load the specified texture file
         let fileName = `img/textures/texture${texture_nr}.json`;
@@ -404,7 +404,7 @@ function load(texture_nr = null, offset = 0) {
 }
 
 // Helper function to apply the loaded data to the grid
-function applyTextureData(data, offset) {
+export function applyTextureData(data, offset) {
     for (let key in data) {
         let [row, col] = key.split(",").map(Number); // Parse grid coordinates
         let grid = grids[row][col + offset];
