@@ -1,17 +1,49 @@
 import { displayTextBox } from "./text_functions.js";
+import { upgrades } from "./upgradevalues.js";
 
 export class Upgrades {
   constructor(canvas, ctx) {
     this.canvas = canvas;
     this.ctx = ctx;
     this.visible = false;
-    this.upgrades = {};
+    this.upgrades = upgrades;
     this.lines = {};
     this.fixPositionOfUpgradeButons();
   }
+  // Functions for upgrades
+  increaseDamage(game) {
+    console.log("Increasing damage");
+    game.cannon.normalDamage += 1;
+  }
+  increaseHealth(game) {
+    console.log("Increasing health");
+    game.maxHealth += 5;
+  }
+  increaseSpeed(game) {
+    console.log("Increasing speed");
+    game.player.move_speed += 1;
+  }
+  increaseInventory(game) {
+    console.log("Increasing inventory");
+    game.weightMultiplier += 0.5;
+  }
+  increaseTime(game) {
+    console.log("Increasing time");
+    game.maxTimer += 20 * 60;
+    game.timer += 20 * 60;
+  }
+  regenerateHealth(game) {
+    if ((game.timer / 60) % 30 == 0 && upgrades["regen1"].unlocked && game.timer != game.maxTimer && game.health < game.maxHealth && game.timer > 0) {
+      console.log("Regenerating health");
+      game.health += 1;
+    }
+  }
+
+  
+  
   fixPositionOfUpgradeButons() {
     // Set level
-    for (let [upgrade, value] of Object.entries(this.upgrades)) {
+    for (let value of Object.values(this.upgrades)) {
       let level = 0;
       let original = value;
       while (value.previous != "") {
@@ -21,7 +53,7 @@ export class Upgrades {
       original.level = level;
     }
     let trees = {};
-    for (let [upgrade, value] of Object.entries(this.upgrades)) {
+    for (let value of Object.values(this.upgrades)) {
       const original = value;
       while (value.previous != "") {
         value = this.upgrades[value.previous];
@@ -55,7 +87,7 @@ export class Upgrades {
 
       for (let upgrade of tree) {
         upgrade.x = upgrade.level * 120;
-        const defaulty = 120;
+        const defaulty = 200;
         if (upgrade.amount > 1) {
           // create a new subtree only containing upgrades of the same level
           let subtree = [];
@@ -64,34 +96,44 @@ export class Upgrades {
               subtree.push(upgrade2);
             }
           }
+          // Find first common ancestor
+          let commonAncestor = upgrade;
+          while (commonAncestor.previous != "") {
+            commonAncestor = this.upgrades[commonAncestor.previous];
+          }
           const levelHeight = 120 * subtree.length;
           upgrade.y =
-            this.upgrades[upgrade.previous].y +
+            commonAncestor.y +
             50 -
             levelHeight / 2 +
             subtree.indexOf(upgrade) * 120;
         } else {
           if (upgrade.level == 0) {
             // set starting y value
-            let maxY = 0;
-            for (let upgrade3 of Object.values(this.upgrades)) {
-              console.log(upgrade3.name + "Should has Y of: " + upgrade3.y);
-              if (upgrade3.y > maxY) {
-                maxY = upgrade3.y + 120;
-              }
+            switch (upgrade.id) {
+              case "dmg1":
+                upgrade.y = defaulty;
+              break;
+              case "hp1":
+                upgrade.y = defaulty * 2.8;
+                break
+              case "speed1":
+                upgrade.y = defaulty * 4.6;
+                break
+              default:
+                upgrade.y = defaulty;
             }
-            console.log("Upgrade " + upgrade.name + "Should be on " + maxY);
-            upgrade.y = defaulty + maxY;
           } else {
             // inherit y from previous upgrade
             upgrade.y = this.upgrades[upgrade.previous].y;
           }
         }
+        upgrade.x += 50;
       }
     }
   }
 
-  showUpgradeShop(gray, yellow, blue) {
+  showUpgradeShop(game) {
     const upgradebackground = document.createElement("div");
     upgradebackground.id = "upgradebackground";
     upgradebackground.className = "upgradebackground";
@@ -116,7 +158,7 @@ export class Upgrades {
         const buttonSize = 100;
         const x1 = value.x + buttonSize / 2;
         const y1 = value.y + buttonSize / 2;
-        const x2 = previousUpgrade.x + buttonSize / 2; 
+        const x2 = previousUpgrade.x + buttonSize / 2;
         const y2 = previousUpgrade.y + buttonSize / 2;
         const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
         const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
@@ -155,15 +197,16 @@ export class Upgrades {
           }
         }
         if (
-          gray >= value.costgray &&
-          yellow >= value.costyellow &&
-          blue >= value.costblue
+          game.gray >= value.costgray &&
+          game.yellow >= value.costyellow &&
+          game.blue >= value.costblue
         ) {
           // Buy upgrade
-          gray -= value.costgray;
-          yellow -= value.costyellow;
-          blue -= value.costblue;
+          game.gray -= value.costgray;
+          game.yellow -= value.costyellow;
+          game.blue -= value.costblue;
           value.unlocked = true;
+          eval("this." + value.function);
           displayTextBox("Bought " + value.name + "!", 2000);
           upgradebutton.style.border = "2px solid rgb(0, 255, 0)";
 
