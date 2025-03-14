@@ -37,8 +37,13 @@ export class ProcedualGeneration {
         this.yPos = ypos;
         this.maxY = 5;
         this.minY = 2;
+        this.columnQueue = [];
         for (let i = 0; i < numCols; i++) {
             this.next();
+        }
+        // Empty rest of the queue
+        for (let i = 0; i < this.columnQueue.length; i++) {
+            this.drawColumn(this.columnQueue[i]);
         }
         let tileFile = {};
         for (let row of grids) {
@@ -60,8 +65,38 @@ export class ProcedualGeneration {
     }
     next() {
         this.yPos += this.getElevationChange();
-        this.drawColumn();
+        this.columnQueue.push([this.yPos, this.xPos]);
+        if (this.columnQueue.length > 5) {
+            this.drawColumn(this.columnQueue.shift());
+            this.modifyColumnQueue();
+        }
         this.xPos += 1;
+    }
+    modifyColumnQueue() {
+        const possibleChanges = ["hole", "holer", "hill", "hiller"];
+        if (Math.random() < 0.1){
+            const change = possibleChanges[Math.floor(Math.random() * possibleChanges.length)];
+            const firsty = this.columnQueue[0][0];
+            switch (change) {
+                case "hole":
+                    console.log("Hole");
+                    this.columnQueue[2][0] = firsty;
+                    this.columnQueue.splice(1, 1); 
+                    
+                    break;
+                case "holer":
+                    console.log("Holer");
+                    this.columnQueue[3][0] = firsty;
+                    this.columnQueue.splice(1, 2); 
+                    break;
+                case "hill":
+                    break;
+                case "hiller":
+                    break
+            }
+        }
+
+
     }
     getElevationChange() {
         if (this.xPos === 0) {
@@ -86,9 +121,9 @@ export class ProcedualGeneration {
             return 0;
         }
     }
-    drawColumn() {
-        for (let i = this.yPos; i <= this.maxY; i++) {
-            drawGrid(null, [i, this.xPos]);
+    drawColumn(coord) {
+        for (let i = coord[0]; i <= this.maxY; i++) {
+            drawGrid(null, [i, coord[1]]);
         }
     }
 }

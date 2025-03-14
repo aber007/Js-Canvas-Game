@@ -78,6 +78,9 @@ export class Player {
     }
   }
   get_current_grid() {
+    if (this.y > this.canvas.height) {
+      // switch the game without screwing up the rest of the code. Hopefully I remember to do this
+    }
     // Get the current grid the player is on
     let grid_x = Math.floor(this.inverseX / 32 / 4);
     let grid_y = Math.floor(this.y / 32 / 4);
@@ -91,7 +94,6 @@ export class Player {
     // Check if grid is different from last grid
     if (this.current_grid !== this.lastgrid) {
       this.lastgrid = this.current_grid;
-      console.log("Grid changed");
       const change = this.current_grid.x - this.inverseX;
     }
   }

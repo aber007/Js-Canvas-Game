@@ -247,6 +247,7 @@ function applyTextureData(data, offset) {
       }
     }
   }
+
   // Verify the grid coordinates
   for (let i = 0; i < game.grids.length; i++) {
     for (let j = 0; j < game.grids[i].length; j++) {
@@ -1192,10 +1193,10 @@ class Game {
 
   playCannon() {
     if (this.cannonJustStarted) {
+      this.cannonJustStarted = false;
       displayTextBox(
         "Use the mouse to aim and left click or hold to shoot. Right click to use your special cannonball. \n\n Press E to close."
       );
-      this.cannonJustStarted = false;
     }
     unload();
     this.removeListeners();
