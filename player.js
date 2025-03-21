@@ -8,7 +8,7 @@ export class Player {
     // X and Y position of the player camera
     this.x = this.canvas.width / 2;
     this.inverseX = this.canvas.width / 2;
-    this.y = this.canvas.height - 256;
+    this.y = this.canvas.height - 512;
     this.playerOffset = -500;
     this.playery = 0;
 

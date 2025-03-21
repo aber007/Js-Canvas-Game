@@ -160,13 +160,13 @@ function getImgType(grid) {
             (e === grid.type || e == "side") &&
             (w === grid.type || w == "side")
         ) {
-            return `img/tiles/dynamic_tile_names/${grid.type}/top.gif`;
+            return [`img/tiles/dynamic_tile_names/${grid.type}/top.gif`, true];
         } else if ((e === grid.type || e === "side") && w === undefined) {
-            return `img/tiles/dynamic_tile_names/${grid.type}/corner_left.gif`;
+            return [`img/tiles/dynamic_tile_names/${grid.type}/corner_left.gif`, true];
         } else if ((w === grid.type || w === "side") && e === undefined) {
-            return `img/tiles/dynamic_tile_names/${grid.type}/corner_right.gif`;
+            return [`img/tiles/dynamic_tile_names/${grid.type}/corner_right.gif`, true];
         } else {
-            return `img/tiles/dynamic_tile_names/${grid.type}/top_thin.gif`;
+            return [`img/tiles/dynamic_tile_names/${grid.type}/top_thin.gif`, true];
         }
     }
     if (n !== undefined) {
@@ -175,34 +175,34 @@ function getImgType(grid) {
             (w === grid.type || w == "side")
         ) {
             if (ne === undefined && nw === undefined) {
-                return `img/tiles/dynamic_tile_names/${grid.type}/top.gif`;
+                return [`img/tiles/dynamic_tile_names/${grid.type}/top.gif`, false];
             } else if (nw === undefined) {
-                return `img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_left.gif`;
+                return [`img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_left.gif`, false];
             } else if (ne === undefined) {
-                return `img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_right.gif`;
+                return [`img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_right.gif`, false];
             } else {
-                return `img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`;
+                return [`img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`, false];
             }
         } else if (
             (e === grid.type || e === "side") &&
             (w === undefined || w == "side")
         ) {
             if (ne === undefined) {
-                return `img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_right.gif`;
+                return [`img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_right.gif`, false];
             } else {
-                return `img/tiles/dynamic_tile_names/${grid.type}/left.gif`;
+                return [`img/tiles/dynamic_tile_names/${grid.type}/left.gif`, false];
             }
         } else if (
             (w === grid.type || w === "side") &&
             (e === undefined || e == "side")
         ) {
             if (nw === undefined) {
-                return `img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_left.gif`;
+                return [`img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_left.gif`, false];
             } else {
-                return `img/tiles/dynamic_tile_names/${grid.type}/right.gif`;
+                return [`img/tiles/dynamic_tile_names/${grid.type}/right.gif`, false];
             }
         } else {
-            return `img/tiles/dynamic_tile_names/${grid.type}/side_thin.gif`;
+            return [`img/tiles/dynamic_tile_names/${grid.type}/side_thin.gif`, false];
         }
     }
 }
@@ -211,7 +211,7 @@ export function updateAllGrids(sendgrids = grids) {
     for (let row of sendgrids) {
         for (let grid of row) {
             if (grid.type !== undefined) {
-                grid.img.src = getImgType(grid);
+                grid.img.src = getImgType(grid)[0];
                 grid.img.onload = () => {
                     grid.draw();
                 };
@@ -230,7 +230,9 @@ function drawGrid(e = null, gridCoord = null) {
         grid = grids[gridCoord[0]][gridCoord[1]];
     }
     grid.type = block_type[img_nr];
-    current_img = getImgType(grid);
+    let type = getImgType(grid);
+    current_img = type[0];
+    
 
     let save_img2_src = "";
 
@@ -250,7 +252,7 @@ function drawGrid(e = null, gridCoord = null) {
         img: save_img_src,
         img2: save_img2_src,
         collidable: true,
-        walkable: true,
+        walkable: type[1],
     };
     updateAllGrids();
 }

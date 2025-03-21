@@ -189,7 +189,7 @@ function applyTextureData(data, offset) {
 
       if (
         data[key].walkable &&
-        grid.img.src.includes("sheet_") &&
+        grid.img.src.includes(".gif") &&
         grid.x > canvas.width / 2
       ) {
         // Chance to add a block at that row
@@ -1340,6 +1340,7 @@ class Game {
   }
 }
 // Preload function
+const startime = performance.now();
 const preloadImages = (imagePaths) => {
   return Promise.all(
     imagePaths.map((path) => {
@@ -1354,20 +1355,37 @@ const preloadImages = (imagePaths) => {
 };
 
 const imagePaths = [];
-for (let i = 2; i < 72; i++) {
-  imagePaths.push(`img/tiles/sheet_${i}.gif`);
-}
-// Load cannon imgages
-for (let i = 1; i < 8; i++) {
-  imagePaths.push(`img/cannon/${i}.gif`);
-}
-imagePaths.push("img/cannon/wheel.gif");
+const checkedFolders = [];
 
-// Load player images
-for (let i = 1; i < 5; i++) {
-  imagePaths.push(`img/player/${i}.gif`);
-  imagePaths.push(`img/player/${i}-flip.gif`);
-}
+const logImagesInFolder = async (folderPath) => {
+  try {
+    const response = await fetch(folderPath);
+    if (!response.ok) throw new Error(`Failed to fetch folder: ${folderPath}`);
+    const text = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, "text/html");
+    const links = Array.from(doc.querySelectorAll("a"));
+
+    const promises = links.map(async (link) => {
+      const href = link.getAttribute("href");
+      if (href && (href.endsWith(".png") || href.endsWith(".gif"))) {
+        console.log(`Found image: ${href}`);
+        imagePaths.push(`${href}`);
+      } else if (href.includes("/img/") && !checkedFolders.includes(href) && !href.includes(".")) {
+        checkedFolders.push(href);
+        console.log(`Found folder: ${href}`);
+        await logImagesInFolder(href);
+      }
+    });
+
+    await Promise.all(promises);
+  } catch (error) {
+    console.error(`Error logging images in folder: ${error.message}`);
+  }
+};
+
+await logImagesInFolder("/img");
+
 
 let grids = [];
 for (let j = 0; j < 8; j++) {
@@ -1389,7 +1407,9 @@ window.game = game;
 preloadImages(imagePaths)
   .then(() => {
     console.log("All images preloaded successfully!");
-    game.playCollect(); // Start the game loop
+    let endtime = performance.now();
+    console.log(`Time taken to preload images: ${((endtime - startime) / 1000).toPrecision(6)} seconds`);
+    game.playCollect();
   })
   .catch((error) => {
     console.error(error);
