@@ -74,29 +74,30 @@ export class ProcedualGeneration {
     }
     modifyColumnQueue() {
         const possibleChanges = ["hole", "holer", "hill", "hiller"];
-        if (Math.random() < 0.1){
-            const change = possibleChanges[Math.floor(Math.random() * possibleChanges.length)];
+        if (Math.random() < 0.1) {
+            const change =
+                possibleChanges[
+                    Math.floor(Math.random() * possibleChanges.length)
+                ];
             const firsty = this.columnQueue[0][0];
             switch (change) {
                 case "hole":
                     console.log("Hole");
                     this.columnQueue[2][0] = firsty;
-                    this.columnQueue.splice(1, 1); 
-                    
+                    this.columnQueue.splice(1, 1);
+
                     break;
                 case "holer":
                     console.log("Holer");
                     this.columnQueue[3][0] = firsty;
-                    this.columnQueue.splice(1, 2); 
+                    this.columnQueue.splice(1, 2);
                     break;
                 case "hill":
                     break;
                 case "hiller":
-                    break
+                    break;
             }
         }
-
-
     }
     getElevationChange() {
         if (this.xPos === 0) {
@@ -162,11 +163,20 @@ function getImgType(grid) {
         ) {
             return [`img/tiles/dynamic_tile_names/${grid.type}/top.gif`, true];
         } else if ((e === grid.type || e === "side") && w === undefined) {
-            return [`img/tiles/dynamic_tile_names/${grid.type}/corner_left.gif`, true];
+            return [
+                `img/tiles/dynamic_tile_names/${grid.type}/corner_left.gif`,
+                true,
+            ];
         } else if ((w === grid.type || w === "side") && e === undefined) {
-            return [`img/tiles/dynamic_tile_names/${grid.type}/corner_right.gif`, true];
+            return [
+                `img/tiles/dynamic_tile_names/${grid.type}/corner_right.gif`,
+                true,
+            ];
         } else {
-            return [`img/tiles/dynamic_tile_names/${grid.type}/top_thin.gif`, true];
+            return [
+                `img/tiles/dynamic_tile_names/${grid.type}/top_thin.gif`,
+                true,
+            ];
         }
     }
     if (n !== undefined) {
@@ -175,34 +185,61 @@ function getImgType(grid) {
             (w === grid.type || w == "side")
         ) {
             if (ne === undefined && nw === undefined) {
-                return [`img/tiles/dynamic_tile_names/${grid.type}/top.gif`, false];
+                return [
+                    `img/tiles/dynamic_tile_names/${grid.type}/top.gif`,
+                    false,
+                ];
             } else if (nw === undefined) {
-                return [`img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_left.gif`, false];
+                return [
+                    `img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_left.gif`,
+                    false,
+                ];
             } else if (ne === undefined) {
-                return [`img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_right.gif`, false];
+                return [
+                    `img/tiles/dynamic_tile_names/${grid.type}/corner_inverse_right.gif`,
+                    false,
+                ];
             } else {
-                return [`img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`, false];
+                return [
+                    `img/tiles/dynamic_tile_names/${grid.type}/bottom_1.gif`,
+                    false,
+                ];
             }
         } else if (
             (e === grid.type || e === "side") &&
             (w === undefined || w == "side")
         ) {
             if (ne === undefined) {
-                return [`img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_right.gif`, false];
+                return [
+                    `img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_right.gif`,
+                    false,
+                ];
             } else {
-                return [`img/tiles/dynamic_tile_names/${grid.type}/left.gif`, false];
+                return [
+                    `img/tiles/dynamic_tile_names/${grid.type}/left.gif`,
+                    false,
+                ];
             }
         } else if (
             (w === grid.type || w === "side") &&
             (e === undefined || e == "side")
         ) {
             if (nw === undefined) {
-                return [`img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_left.gif`, false];
+                return [
+                    `img/tiles/dynamic_tile_names/${grid.type}/corner_side_inverse_left.gif`,
+                    false,
+                ];
             } else {
-                return [`img/tiles/dynamic_tile_names/${grid.type}/right.gif`, false];
+                return [
+                    `img/tiles/dynamic_tile_names/${grid.type}/right.gif`,
+                    false,
+                ];
             }
         } else {
-            return [`img/tiles/dynamic_tile_names/${grid.type}/side_thin.gif`, false];
+            return [
+                `img/tiles/dynamic_tile_names/${grid.type}/side_thin.gif`,
+                false,
+            ];
         }
     }
 }
@@ -232,7 +269,6 @@ function drawGrid(e = null, gridCoord = null) {
     grid.type = block_type[img_nr];
     let type = getImgType(grid);
     current_img = type[0];
-    
 
     let save_img2_src = "";
 
@@ -274,21 +310,22 @@ function deleteGrid(e) {
     ctx.clearRect(grid.x, grid.y, grid.width, grid.height);
     updateAllGrids();
 }
-
-addEventListener("keydown", (e) => {
-    if (e.key == "e") {
-        edit();
-    }
-    if (e.key == "s") {
-        save();
-    }
-    if (e.key == "l") {
-        load();
-    }
-    if (e.key == "u") {
-        unload();
-    }
-});
+if (edit_mode) {
+    addEventListener("keydown", (e) => {
+        if (e.key == "e") {
+            edit();
+        }
+        if (e.key == "s") {
+            save();
+        }
+        if (e.key == "l") {
+            load();
+        }
+        if (e.key == "u") {
+            unload();
+        }
+    });
+}
 
 class Grid {
     constructor(x, y, color) {

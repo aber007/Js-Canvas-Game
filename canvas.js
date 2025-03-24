@@ -31,6 +31,15 @@ ctx.imageSmoothingEnabled = false;
 //   }
 // });
 
+function showLoadingScreen() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white";
+    ctx.font = "30px Arial";
+    ctx.fillText("Loading...", canvas.width / 2 - 50, canvas.height / 2);
+}
+showLoadingScreen();
+
 class Grid {
     constructor(x, y, color) {
         this.x = x;
@@ -268,150 +277,6 @@ function applyTextureData(data, offset) {
         }
     }
     savefile = data; // Update the global savefile variable
-}
-
-function edit() {
-    edit_mode = !edit_mode;
-    if (edit_mode) {
-        console.log("Edit mode enabled");
-        canvas.style.cursor = "crosshair";
-        // Adjust collision and walkable properties with keys
-        let lastMouseX = 0; // Track the last mouse X position
-        let lastMouseY = 0; // Track the last mouse Y position
-
-        // Track mouse movement over the canvas
-        addEventListener("mousemove", (e) => {
-            lastMouseX = e.clientX - canvas.getBoundingClientRect().left;
-            lastMouseY = e.clientY - canvas.getBoundingClientRect().top;
-        });
-
-        // Listen for keydown events
-        addEventListener("keydown", (e) => {
-            // Calculate grid position based on the last mouse position
-            let gridX = Math.floor(lastMouseY / 32 / 4);
-            let gridY = Math.floor(lastMouseX / 32 / 4);
-            console.log(gridX, gridY);
-            console.log(lastMouseX, lastMouseY);
-
-            let grid = grids[gridX][gridY];
-            if (!grid) return; // Ensure the grid cell exists
-
-            // Toggle properties based on the key pressed
-            if (e.key == "c") {
-                grid.collidable = !grid.collidable;
-                console.log(savefile);
-                savefile[grid.coord].collidable = grid.collidable;
-                showCollidable();
-                console.log("Collision is: " + grid.collidable);
-            }
-            if (e.key == "x") {
-                grid.walkable = !grid.walkable;
-                showWalkable();
-                savefile[grid.coord].walkable = grid.walkable;
-                console.log("Walkable is: " + grid.walkable);
-            }
-        });
-
-        addEventListener("mousedown", (e) => {
-            if (e.button != 0) return; // Only left
-            let x = e.clientX - canvas.getBoundingClientRect().left;
-            let y = e.clientY - canvas.getBoundingClientRect().top;
-            let grid =
-                game.grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
-            let current_img = `img/tiles/sheet_${img_nr}.gif`;
-
-            let save_img2_src = "";
-
-            if (grid.img.src.includes("sheet_")) {
-                save_img2_src = "img/tiles/" + grid.img.src.split("/").pop();
-            }
-
-            grid.img.src = current_img;
-            grid.img.onload = () => {
-                grid.draw();
-            };
-            // Save the current grid
-            let img_name = current_img.split("/")[2];
-            let save_img_src = "img/tiles/" + img_name;
-
-            savefile[grid.coord] = {
-                color: grid.color,
-                img: save_img_src,
-                img2: save_img2_src,
-                collidable: grid.collidable,
-                walkable: grid.walkable,
-            };
-        });
-        addEventListener("contextmenu", (e) => {
-            e.preventDefault(); // Prevent the default context menu
-            let x = e.clientX - canvas.getBoundingClientRect().left;
-            let y = e.clientY - canvas.getBoundingClientRect().top;
-            let grid =
-                game.grids[Math.floor(y / 32 / 4)][Math.floor(x / 32 / 4)];
-
-            grid.img.src = "";
-            grid.img2.src = "";
-
-            delete savefile[grid.coord];
-
-            // Clear the canvas section and redraw the default grid
-            ctx.clearRect(grid.x, grid.y, grid.width, grid.height);
-            grid.draw((color = grid.color)); // Redraw the default grid color
-        });
-
-        // Change current img with scroll
-        addEventListener("wheel", (e) => {
-            if (e.deltaY > 0) {
-                if (img_nr == 71) return;
-                img_nr++;
-            } else {
-                if (img_nr == 2) return;
-                img_nr--;
-            }
-            // Display the current img
-            const grid = game.grids[0][0];
-            ctx.clearRect(grid.x, grid.y, grid.width, grid.height);
-            let current_img = `img/tiles/sheet_${img_nr}.gif`;
-            grid.img.src = current_img;
-            grid.img.onload = () => {
-                grid.draw();
-            };
-        });
-    } else {
-        console.log("Edit mode disabled");
-        console.log(savefile);
-        canvas.style.cursor = "default";
-        removeEventListener("mousedown", () => {});
-        removeEventListener("contextmenu", () => {});
-        removeEventListener("wheel", () => {});
-    }
-}
-
-function showWalkable() {
-    for (let row of game.grids) {
-        for (let grid of row) {
-            if (grid.walkable) {
-                grid.outline = "lightgreen";
-                grid.draw();
-            } else {
-                grid.outline = "none";
-                grid.draw();
-            }
-        }
-    }
-}
-function showCollidable() {
-    for (let row of game.grids) {
-        for (let grid of row) {
-            if (grid.collidable) {
-                grid.outline = "red";
-                grid.draw();
-            } else {
-                grid.outline = "none";
-                grid.draw();
-            }
-        }
-    }
 }
 
 function randomIntFromRange(min, max) {
@@ -767,7 +632,6 @@ class Game {
             this.player.vx = 0;
         }
     }
-
     updateBackground() {
         const handleWeatherEvents = (event) => {
             let red = 0;
@@ -1390,10 +1254,21 @@ class Game {
         load(0);
         if (this.useProcedualWorldCreation) {
             for (let i = 0; i < 20; i++) {
+                console.log(
+                    "Creating procedual world: " + (i / 20) * 100 + "%"
+                );
                 let procedualTile = this.procedual.newTile(this.procedual.yPos);
                 applyTextureData(procedualTile, this.grids[0].length);
             }
+            console.log("Creating procedual world: " + 1 * 100 + "%");
         }
+        let endtime = performance.now();
+        console.log(
+          `Time taken to load: ${(
+              (endtime - startime) /
+              1000
+          ).toPrecision(6)} seconds`
+      );
     }
 }
 // Preload function
