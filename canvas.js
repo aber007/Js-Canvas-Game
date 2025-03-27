@@ -4,7 +4,7 @@ let canvas = document.querySelector("canvas");
 import { Player } from "./player.js";
 import { Upgrades } from "./upgrades.js";
 import { Block, CannonBall, Enemy } from "./objects.js";
-import { displayTextBox, displayTextBoxSeries } from "./text_functions.js";
+import { displayInterractButton, displayTextBox, displayTextBoxSeries } from "./text_functions.js";
 import { ProcedualGeneration, updateAllGrids } from "./editor.js";
 
 canvas.width = 1536;
@@ -432,6 +432,9 @@ class Game {
         this.towerDefense = false;
         this.useProcedualWorldCreation = true;
 
+        /**
+         * @type {Player}
+         */
         this.player = new Player(canvas, ctx, this);
         this.cannon = new Cannon(this);
         this.grids = grids;
@@ -521,9 +524,16 @@ class Game {
         this.playerReady = false;
         this.health = 10;
         this.maxHealth = 10;
-        this.yellow = 1000;
-        this.gray = 1000;
-        this.blue = 1000;
+        this.yellow = 10;
+        this.gray = 10;
+        this.blue = 10;
+    }
+
+    showInterractable() {
+        // Draw a small "E" above the player to indicate that the player can interact with something
+        displayInterractButton("E");
+        
+
     }
 
     getRandomTexture() {
@@ -886,9 +896,9 @@ class Game {
         // Numbers of coins
         ctx.fillStyle = "black";
         ctx.font = "20px Arial";
-        ctx.fillText(this.gray, 475, 40);
-        ctx.fillText(this.yellow, 585, 40);
-        ctx.fillText(this.blue, 695, 40);
+        ctx.fillText(this.gray, 470, 40);
+        ctx.fillText(this.yellow, 580, 40);
+        ctx.fillText(this.blue, 690, 40);
 
         // Draw the timer
         const seconds = Math.floor(this.timer / 60);
@@ -909,7 +919,7 @@ class Game {
 
     updateCollect = () => {
         this.infinitewalk();
-        // this.checkPassiveUpgrades();
+        this.checkPassiveUpgrades();
 
         // update timer
         if (this.player.playerOffset >= 0) {
@@ -1107,16 +1117,12 @@ class Game {
     }
 
     playCannon() {
-        if (this.cannonJustStarted) {
-            this.cannonJustStarted = false;
-            displayTextBox(
-                "Use the mouse to aim and left click or hold to shoot. Right click to use your special cannonball. \n\n Press E to close."
-            );
-        }
+        canvas.style.backgroundColor = "darkslategray";
+        showLoadingScreen();
         unload();
         this.removeListeners();
         this.x = canvas.width / 2;
-
+        
         // Remove overlays
         const overlayhue = document.getElementById("overlayhue");
         overlayhue.style.backgroundColor = `rgba(0,0,0,0)`;
@@ -1126,10 +1132,10 @@ class Game {
         ctx.fillStyle = `rgb(${0},${0},${0})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.globalAlpha = 1;
-
+        
         this.blocks = [];
         this.towerDefense = true;
-
+        
         // Define event listeners
         this.mousemoveListener = (event) => {
             this.mouse.x = event.clientX;
@@ -1151,18 +1157,26 @@ class Game {
             e.preventDefault();
             this.cannon.shoot(true);
         };
-
+        
         // Add event listeners
         addEventListener("mousemove", this.mousemoveListener);
         addEventListener("mousedown", this.mousedownListener);
         addEventListener("mouseup", this.mouseupListener);
         addEventListener("contextmenu", this.contextmenuListener);
-
+        
         load(-1);
+        if (this.cannonJustStarted) {
+            this.cannonJustStarted = false;
+            displayTextBox(
+                "Use the mouse to aim and left click or hold to shoot. Right click to use your special cannonball. \n\n Press E to close."
+            );
+        }
     }
 
     playCollect() {
+        canvas.style.backgroundColor = "black";
         unload();
+        showLoadingScreen();
         this.weather = randomIntFromRange(0, 3);
         this.timer = this.maxTimer;
         this.removeListeners();
@@ -1213,18 +1227,16 @@ class Game {
             }
             if (e.key == "e") {
                 if (
-                    this.player.playerOffset < -540 &&
-                    this.player.playerOffset > -700 &&
+                    this.canSwitch &&
                     this.switchOnce &&
                     !this.towerDefense
                 ) {
                     this.switchOnce = false;
                     this.switchGame();
                     this.playerReady = true;
+                } else if (this.canBuy){
+                    this.upgrades.showUpgradeShop(this);
                 }
-            }
-            if (e.key == "r") {
-                this.upgrades.showUpgradeShop(this);
             }
         };
         this.keyupListener = (e) => {

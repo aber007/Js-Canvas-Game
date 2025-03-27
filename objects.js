@@ -70,28 +70,6 @@ export class Block {
     }
     // Get the grids position from the left side of the canvas
   }
-
-  // update() {
-  //   this.get_current_grid();
-
-  //   // Check if block is outside of the canvas
-
-  //   // Update position
-
-  //   // Collide with grid
-  //   this.vy += game.gravity;
-  //   this.y += this.vy;
-
-  //   if (this.current_grid) {
-  //     if (
-  //       this.current_grid.walkable &&
-  //       this.vy > 0 // Falling downward
-  //     ) {
-  //       this.y = this.current_grid.y - this.height;
-  //       this.vy = -this.vy * this.elasticity;
-  //     }
-  //   }
-  // }
 }
 
 export class Enemy extends Block {

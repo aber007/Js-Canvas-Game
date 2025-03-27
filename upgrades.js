@@ -97,6 +97,7 @@ export class Upgrades {
       for (let upgrade of tree) {
         upgrade.x = upgrade.level * 120;
         const defaulty = 200;
+        const offset = 70;
         if (upgrade.amount > 1) {
           // create a new subtree only containing upgrades of the same level
           let subtree = [];
@@ -121,16 +122,16 @@ export class Upgrades {
             // set starting y value
             switch (upgrade.id) {
               case "dmg1":
-                upgrade.y = defaulty;
+                upgrade.y = offset + defaulty;
               break;
               case "hp1":
-                upgrade.y = defaulty * 2.8;
+                upgrade.y = offset + defaulty * 3.1;
                 break
               case "speed1":
-                upgrade.y = defaulty * 4.6;
+                upgrade.y = offset + defaulty * 4.9;
                 break
               default:
-                upgrade.y = defaulty;
+                upgrade.y = offset + defaulty;
             }
           } else {
             // inherit y from previous upgrade

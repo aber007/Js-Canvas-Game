@@ -56,7 +56,7 @@ export class ProcedualGeneration {
                         ),
                         img2: "",
                         collidable: true,
-                        walkable: true,
+                        walkable: getImgType(grid)[1],
                     };
                 }
             }
