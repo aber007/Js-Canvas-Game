@@ -1,3 +1,5 @@
+import { Player } from "./player.js";
+
 const randomIntFromRange = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
@@ -11,7 +13,7 @@ export class Block {
     this.y = y;
     this.width = width;
     this.height = height;
-    this.vx = 0;
+    this.vx = 1;
     this.vy = 0;
     this.elasticity = elasticity;
     this.playerNo = playerNo;
@@ -28,20 +30,7 @@ export class Block {
     this.grabbed = false;
   }
 
-  draw(ctx, mouse) {
-    if (this.line) {
-      // Draw the rope
-      ctx.beginPath();
-      ctx.moveTo(this.x + this.width / 2, this.y + this.height / 2);
-      ctx.lineTo(
-        canvas.width / 2 + game.player.player_img.width * 3,
-        game.player.y + game.player.player_img.height * 3
-      );
-      ctx.strokeStyle = "black";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
+  draw(ctx) {
     // Draw the block
     ctx.save();
     ctx.translate(
@@ -71,7 +60,22 @@ export class Block {
     // Get the grids position from the left side of the canvas
   }
 }
-
+// Enemies in the platformer part
+export class Enemy2 extends Block {
+  constructor(x, y, width, height, color = "red") {
+    super(x, y, width, height, color);
+  }
+  move() {
+    this.initialX += this.vx;
+    this.y += this.vy;
+  }
+  update() {
+    console.log(this.initialX)
+    this.move();
+    this.draw(this.ctx);
+  }
+}
+// Enemies in the tower defence part
 export class Enemy extends Block {
   constructor(x, y, width, height, game, elasticity = 0.8, playerNo = 0) {
     super(x, y, width, height, game, elasticity, playerNo);

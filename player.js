@@ -17,14 +17,14 @@ export class Player {
         this.playery = 0;
 
         this.move_speed = 6;
-        this.jump_speed = 18;
+        this.jump_speed = 12;
 
         this.vx = 0;
         this.vy = 0;
         this.current_grid = null;
         this.jump_height = 0;
         this.player_img = new Image();
-        this.gravity = 1;
+        this.gravity = 0.5;
         this.img_nr = 1;
         this.img_rotation = "";
         this.player_img.src = `./img/player/${this.img_nr}${this.img_rotation}.gif`;
@@ -102,11 +102,6 @@ export class Player {
             this.gridUnder = this.game.grids[grid_y + 2][grid_x];
         } catch (e) {
             console.log(e);
-        }
-        // Check if grid is different from last grid
-        if (this.current_grid !== this.lastgrid) {
-            this.lastgrid = this.current_grid;
-            const change = this.current_grid.x - this.inverseX;
         }
     }
     checkCollisionWithBlock() {

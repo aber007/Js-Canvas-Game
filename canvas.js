@@ -3,33 +3,17 @@ let canvas = document.querySelector("canvas");
 
 import { Player } from "./player.js";
 import { Upgrades } from "./upgrades.js";
-import { Block, CannonBall, Enemy } from "./objects.js";
+import { Block, CannonBall, Enemy, Enemy2} from "./objects.js";
 import { displayInterractButton, displayTextBox, displayTextBoxSeries } from "./text_functions.js";
-import { ProcedualGeneration, updateAllGrids } from "./editor.js";
+import { ProcedualGeneration} from "./editor.js";
 
 canvas.width = 1536;
 canvas.height = 768;
 
-let img_nr = 2;
 let edit_mode = false;
 
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
-
-// addEventListener("keydown", (e) => {
-//   if (e.key == "e") {
-//     edit();
-//   }
-//   if (e.key == "s") {
-//     save();
-//   }
-//   if (e.key == "l") {
-//     load();
-//   }
-//   if (e.key == "u") {
-//     unload();
-//   }
-// });
 
 function showLoadingScreen() {
     ctx.fillStyle = "black";
@@ -203,7 +187,7 @@ function applyTextureData(data, offset) {
                 grid.x > canvas.width / 2
             ) {
                 // Chance to add a block at that row
-                if (Math.random() < 0.1) {
+                if (Math.random() < 0.15) {
                     // Decide color of block (value)
                     let color = "gray";
                     const value = Math.random();
@@ -223,6 +207,12 @@ function applyTextureData(data, offset) {
                             color
                         )
                     );
+                } else {
+                    if(Math.random() < 0.2){
+                        console.log("Enemy added");
+                        console.log("Enemy position: " + grid.x + " " + grid.y);
+                        game.collect_enemies.push(new Enemy2(grid.x - canvas.width / 2 + 48, grid.y - 64, 64, 64, "red"));
+                    }
                 }
             }
         } else {
@@ -501,6 +491,7 @@ class Game {
         this.weight = 0;
         this.weightMultiplier = 1;
         this.inventory = [];
+        this.collect_enemies = [];
 
         this.upgradeShopVisible = false;
         this.maxTimer = 120 * 60; //Seconds times framerate
@@ -532,8 +523,6 @@ class Game {
     showInterractable() {
         // Draw a small "E" above the player to indicate that the player can interact with something
         displayInterractButton("E");
-        
-
     }
 
     getRandomTexture() {
@@ -966,8 +955,12 @@ class Game {
         }
 
         for (const block of this.blocks) {
-            block.draw(ctx, this.mouse);
+            block.draw(ctx);
         }
+        // for (const enemy of this.collect_enemies) {
+        //     enemy.update();
+        // }
+        this.collect_enemies[0].update();
         // Update and draw the player
         this.displayCastle();
         this.player.update();
@@ -1210,22 +1203,22 @@ class Game {
 
         // Define event listeners
         this.keydownListener = (e) => {
-            if (e.key == "d") {
+            if (e.key.toLowerCase() == "d") {
                 this.pressed_keys.d = true;
                 this.player.rightCollision = false;
             }
-            if (e.key == "a") {
+            if (e.key.toLowerCase() == "a") {
                 this.pressed_keys.a = true;
                 this.player.leftCollision = false;
             }
-            if (e.key == " ") {
+            if (e.key == " " || e.key == "Spacebar") {
                 this.pressed_keys.space = true;
                 this.player.jump();
             }
-            if (e.key == "q") {
+            if (e.key.toLowerCase() == "q") {
                 this.dropLastBlock();
             }
-            if (e.key == "e") {
+            if (e.key.toLowerCase() == "e") {
                 if (
                     this.canSwitch &&
                     this.switchOnce &&
@@ -1240,18 +1233,18 @@ class Game {
             }
         };
         this.keyupListener = (e) => {
-            if (e.key == "d") {
+            if (e.key.toLowerCase() == "d") {
                 this.pressed_keys.d = false;
                 this.player.rightCollision = false;
             }
-            if (e.key == "a") {
+            if (e.key.toLowerCase() == "a") {
                 this.pressed_keys.a = false;
                 this.player.leftCollision = false;
             }
-            if (e.key == " ") {
+            if (e.key == " " || e.key == "Spacebar") {
                 this.pressed_keys.space = false;
             }
-            if (e.key == "e") {
+            if (e.key.toLowerCase() == "e") {
                 this.switchOnce = true;
             }
         };
