@@ -15,12 +15,7 @@ export class Block {
     this.height = height;
     this.vx = 1;
     this.vy = 0;
-    this.elasticity = elasticity;
-    this.playerNo = playerNo;
     this.color = color;
-    this.mass = width * height;
-    this.angle = 0;
-    this.angularVelocity = 0;
     this.line = false;
     this.lineOffset = 0;
     this.offset = 0;
@@ -48,16 +43,16 @@ export class Block {
   }
 
   get_current_grid() {
-    // Get the current grid the player is on
+    // Get the current grid the box is on
     let grid_x = Math.floor((this.x - this.width) / 32 / 4);
     let grid_y = Math.floor((this.y - this.height) / 32 / 4);
     try {
       this.current_grid = game.grids[grid_y + 1][grid_x];
       this.nextGrid = game.grids[grid_y + 1][grid_x + 1];
+      // Highlight the grid the box is on
     } catch (e) {
       // Do nothing.
     }
-    // Get the grids position from the left side of the canvas
   }
 }
 // Enemies in the platformer part
@@ -67,10 +62,21 @@ export class Enemy2 extends Block {
   }
   move() {
     this.initialX += this.vx;
+    this.x = this.initialX;
     this.y += this.vy;
   }
+  checkCollisionWithWall() {
+    console.log(this.x, this.nextGrid.x)
+    if(this.nextGrid.collidable) {
+      if (this.x + this.width < this.nextGrid.x) {
+        this.vx = -this.vx;
+        this.initialX = this.x;
+      }
+    }
+  }
   update() {
-    console.log(this.initialX)
+    this.get_current_grid();
+    this.checkCollisionWithWall();
     this.move();
     this.draw(this.ctx);
   }
@@ -91,7 +97,7 @@ export class Enemy extends Block {
 
     this.hitBy = [];
 
-    this.hp = 3 + randomIntFromRange(game.round, 2*game.round);
+    this.hp = 3 + randomIntFromRange(game.round, 2 * game.round);
 
     setTimeout(() => {
       this.animateFly();
@@ -236,7 +242,7 @@ export class CannonBall extends Block {
   playerRequiresAimingHelp() {
     // aim sligtly towaeards the closest enemy
     let enemyDistances = [];
-    if(game.enemies.length == 0){
+    if (game.enemies.length == 0) {
       return;
     }
     for (let enemy of game.enemies) {
@@ -247,9 +253,10 @@ export class CannonBall extends Block {
     const closestEnemy =
       game.enemies[enemyDistances.indexOf(Math.min(...enemyDistances))];
     if (closestEnemy.y < this.y) {
-      this.vy -= 0.1 + (0.3*game.upgrades.upgrades["homing2"].unlocked)  + game.gravity;;
+      this.vy -=
+        0.1 + 0.3 * game.upgrades.upgrades["homing2"].unlocked + game.gravity;
     } else {
-      this.vy += 0.01 + (0.01*game.upgrades.upgrades["homing2"].unlocked)
+      this.vy += 0.01 + 0.01 * game.upgrades.upgrades["homing2"].unlocked;
     }
   }
 
