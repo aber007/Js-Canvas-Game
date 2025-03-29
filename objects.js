@@ -11,7 +11,6 @@ export class Block {
      * @type {CanvasRenderingContext2D}
      */
     this.ctx = this.canvas.getContext("2d");
-    this.initialX = x;
     this.x = x;
     this.y = y;
     this.width = width;
@@ -31,11 +30,10 @@ export class Block {
   draw(ctx) {
     // Draw the block
     ctx.save();
-    console.log
     ctx.translate(
       game.player.x -
         this.lineOffset +
-        this.initialX +
+        this.x +
         this.width / 2,
       this.y + this.height / 2
     );
@@ -64,25 +62,23 @@ export class Block {
 export class Enemy2 extends Block {
   constructor(x, y, width, height, color = "red") {
     super(x, y, width, height, color);
-    this.initialX = x;
     this.x = x;
+    this.width = width;
+    this.height = height;    
   }
   move() {
-    this.initialX += this.vx;
-    this.x = this.initialX;
+    this.x += this.vx;
     this.y += this.vy;
   }
   checkCollisionWithWall() {
-    console.log(this.initialX, this.vx);
     if(this.nextGrid.collidable) {
-      if (this.x + this.width < this.nextGrid.x) {
+      if (this.x+this.width+this.canvas.width/2 > this.nextGrid.x) {
+        console.log("right wall");
         this.vx = -this.vx;
-        this.initialX = this.x;
       }
-    }
-    if (this.current_grid.collidable) {
+    } else if (this.current_grid.collidable) {
+      console.log("left wall");
         this.vx = -this.vx;
-        this.initialX = this.x;
     }
   }
   update() {
