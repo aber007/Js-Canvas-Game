@@ -137,6 +137,25 @@ export class Player {
             }
         }
     }
+    checkCollisionWithEnemy() {
+        // Check if the player is colliding with block
+        for (const enemy of this.game.collect_enemies) {
+            if (
+                this.inverseX -
+                    this.canvas.width / 2 +
+                    this.player_img.width * 3 <
+                    enemy.x + enemy.width &&
+                this.inverseX -
+                    this.canvas.width / 2 +
+                    this.player_img.width * 3 >
+                    enemy.x &&
+                this.y < enemy.y + enemy.height - 100 &&
+                this.y + this.player_img.height + 128 > enemy.y
+            ) {
+                this.game.health -= 1;
+            }
+        }
+    }
     redeemCoins() {
         if (this.playerOffset < 0) {
             if (game.inventory.includes("yellow")) {
@@ -232,6 +251,7 @@ export class Player {
         this.get_current_grid();
         this.check_collision();
         this.checkCollisionWithBlock();
+        this.checkCollisionWithEnemy();
         this.applyGravity();
         this.move();
         this.game.updatePlayerSpeed();

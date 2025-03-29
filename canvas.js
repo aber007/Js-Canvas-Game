@@ -58,7 +58,7 @@ class Grid {
                     this.height
                 );
             }
-            if (this.img.src.split(".").pop() == "png") {
+            if (this.img.src.includes(".png")) {
                 ctx.drawImage(
                     this.img,
                     this.x + offset + 32 * 4,
@@ -89,24 +89,8 @@ class Grid {
     }
 }
 
-// Create a 2D array for grids
-
 // Edit mode
 let savefile = {};
-function save() {
-    if (edit_mode) {
-        let data = JSON.stringify(savefile);
-        let blob = new Blob([data], { type: "application/json" });
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement("a");
-        a.href = url;
-        a.download = "texture.json";
-        a.click();
-        URL.revokeObjectURL(url);
-    } else {
-        alert("There is nothing to save");
-    }
-}
 function unload() {
     // Clear the canvas section and redraw the default grid
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -208,15 +192,17 @@ function applyTextureData(data, offset) {
                         )
                     );
                 } else {
-                    if(Math.random() < 1){
+                    if(Math.random() < 0.2){
                         console.log("Enemy added");
                         console.log("Enemy position: " + grid.x + " " + grid.y);
                         game.collect_enemies.push(new Enemy2(
                             grid.x - canvas.width / 2 + 48,
                             grid.y - 32,
-                            32,
-                            32,
-                            "red"
+                            64,
+                            64,
+                            "red",
+                            "img/enemy2/hedgehog_01.gif",
+                            randomIntFromRange(1, 3)
                         ));
                     }
                 }
@@ -477,8 +463,8 @@ class Game {
 
         this.bg11 = new Image();
         this.bg11.src = "img/background/creature.png";
-        this.hat = new Image();
-        this.hat.src = "img/background/hat.png";
+        this.npc = new Image();
+        this.npc.src = "img/person.gif";
         this.maybeHat = false;
 
         this.hud = new Image();
@@ -871,6 +857,21 @@ class Game {
             this.tower.width * 6,
             this.tower.height * 6
         );
+        // Draw the npc
+        ctx.save();
+        ctx.translate(
+            this.player.x - canvas.width / 4 + 100,
+            canvas.height - 266
+        );
+        ctx.scale(-Math.sign((this.player.x - canvas.width / 4 + 100 - this.npc.width * 3) - (this.player.playerOffset) - canvas.width / 2), 1);
+        ctx.drawImage(
+            this.npc,
+            -this.npc.width * 3,
+            0,
+            this.npc.width * 6,
+            this.npc.height * 6
+        );
+        ctx.restore();
     }
 
     showHUD() {
@@ -963,10 +964,9 @@ class Game {
         for (const block of this.blocks) {
             block.draw(ctx);
         }
-        // for (const enemy of this.collect_enemies) {
-        //     enemy.update();
-        // }
-        this.collect_enemies[0].update();
+        for (const enemy of this.collect_enemies) {
+            enemy.update();
+        }
         // Update and draw the player
         this.displayCastle();
         this.player.update();
@@ -1115,6 +1115,7 @@ class Game {
         removeEventListener("contextmenu", this.contextmenuListener);
     }
 
+    // Initializer for the cannon game
     playCannon() {
         canvas.style.backgroundColor = "darkslategray";
         showLoadingScreen();

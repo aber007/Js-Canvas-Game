@@ -1,58 +1,72 @@
-import { Player } from "./player.js";
-
 const randomIntFromRange = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
 export class Block {
-  constructor(x, y, width, height, color, elasticity = 0.8, playerNo = 0) {
+  constructor(x, y, width, height, color, imgSrc = "", speed = 1) {
     this.canvas = document.querySelector("canvas");
-    /**
-     * @type {CanvasRenderingContext2D}
-     */
     this.ctx = this.canvas.getContext("2d");
     this.x = x;
     this.y = y;
+    this.img = new Image();
+    this.img.src = imgSrc;
+    if (imgSrc == "") {
     this.width = width;
     this.height = height;
-    this.vx = 1;
+    }else {
+      this.width = this.img.width;
+      this.height = this.img.height;
+    }
+    this.vx = speed;
     this.vy = 0;
     this.color = color;
-    this.line = false;
-    this.lineOffset = 0;
-    this.offset = 0;
     this.current_grid = null;
     this.nextGrid = null;
+    this.gridUnder = null;
+    this.nextGridUnder = null;
     this.canBePickedUp = true;
-    this.grabbed = false;
+
   }
 
   draw(ctx) {
     // Draw the block
     ctx.save();
-    ctx.translate(
-      game.player.x -
-        this.lineOffset +
-        this.x +
-        this.width / 2,
-      this.y + this.height / 2
-    );
-    ctx.rotate(this.angle);
-    ctx.fillStyle = this.color;
-    ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+    if (this.img.src.includes(".gif")) {  
+      ctx.translate(
+        game.player.x + this.x + this.img.height / 2,
+        this.y + this.img.height / 2
+      );
+      ctx.scale(Math.sign(this.vx), 1);
+      ctx.drawImage(
+        this.img,
+        -this.img.width * 2,
+        -this.img.height * 2,
+        this.img.width * 4,
+        this.img.height * 4
+      );
+    } else {
+      ctx.translate(
+        game.player.x + this.x + this.width / 2,
+        this.y + this.height / 2
+      );
+      ctx.fillStyle = this.color;
+      ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+    }
     ctx.restore();
   }
 
   get_current_grid(overlay = "none") {
     // Get the current grid the box is on
-    let grid_x = Math.floor((this.x + this.canvas.width/2) / 32 / 4);
-    let grid_y = Math.floor((this.y-this.height) / 32 / 4);
+    let grid_x = Math.floor((this.x + this.canvas.width / 2) / 32 / 4);
+    let grid_y = Math.floor((this.y - this.height) / 32 / 4);
     try {
       this.current_grid = game.grids[grid_y][grid_x];
       this.nextGrid = game.grids[grid_y][grid_x + 1];
-      // Highlight the grid the box is on
-      game.grids[grid_y][grid_x].outline = overlay;
+      this.gridUnder = game.grids[grid_y + 1][grid_x];
+      this.nextGridUnder = game.grids[grid_y + 1][grid_x + 1];
 
+      // Highlight the grid the box is on
+      // game.grids[grid_y][grid_x].outline = overlay;
     } catch (e) {
       // Do nothing.
     }
@@ -60,25 +74,39 @@ export class Block {
 }
 // Enemies in the platformer part
 export class Enemy2 extends Block {
-  constructor(x, y, width, height, color = "red") {
-    super(x, y, width, height, color);
-    this.x = x;
-    this.width = width;
-    this.height = height;    
+  constructor(x, y, width, height, color = "red", imgSrc = "", speed) {
+    super(x, y, width, height, color, imgSrc, speed);
+    this.animateWalk();
+
   }
+  animateWalk() {
+    // Wait ~0.25 seconds before starting the animation
+
+    this.walkAnimation = setInterval(() => {
+      if (this.img_nr < 6) {
+        this.img_nr += 1;
+      } else {
+        this.img_nr = 1;
+      }
+      this.img.src = `./img/enemy2/hedgehog_0${this.img_nr}.gif`;
+    }, 100);
+  }
+
   move() {
     this.x += this.vx;
     this.y += this.vy;
   }
   checkCollisionWithWall() {
-    if(this.nextGrid.collidable) {
-      if (this.x+this.width+this.canvas.width/2 > this.nextGrid.x) {
-        console.log("right wall");
+    if (this.nextGrid.collidable || !this.nextGridUnder.collidable) {
+      if (this.x + this.width + this.canvas.width / 2 > this.nextGrid.x) {
         this.vx = -this.vx;
       }
-    } else if (this.current_grid.collidable) {
-      console.log("left wall");
-        this.vx = -this.vx;
+    } else if (this.current_grid.collidable || !this.gridUnder.collidable) {
+      this.vx = -this.vx;
+    }
+    // Not 0 to avoid damage when far left
+    if (this.x < 128) {
+      this.vx = -this.vx;
     }
   }
   update() {
@@ -121,7 +149,7 @@ export class Enemy extends Block {
   }
 
   animateFly() {
-    // Wait 0.25 seconds before starting the animation
+    // Wait ~0.25 seconds before starting the animation
 
     this.flyAnimation = setInterval(() => {
       if (this.img_nr < 8) {
