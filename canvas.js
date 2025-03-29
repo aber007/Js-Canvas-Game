@@ -208,10 +208,11 @@ function applyTextureData(data, offset) {
                         )
                     );
                 } else {
-                    if(Math.random() < 0.2){
+                    if(Math.random() < 1){
                         console.log("Enemy added");
                         console.log("Enemy position: " + grid.x + " " + grid.y);
-                        game.collect_enemies.push(new Enemy2(grid.x - canvas.width / 2 + 48, grid.y - 64, 64, 64, "red"));
+                        game.collect_enemies.push(new Enemy2(grid.x, grid.y - 64, 64, 64, "red"));
+                        game.collect_enemies.push(new Enemy2(grid.x, grid.y - 64, 64, 64, "blue"));
                     }
                 }
             }
@@ -961,6 +962,7 @@ class Game {
         //     enemy.update();
         // }
         this.collect_enemies[0].update();
+        this.collect_enemies[1].update();
         // Update and draw the player
         this.displayCastle();
         this.player.update();

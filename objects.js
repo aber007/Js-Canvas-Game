@@ -7,6 +7,9 @@ const randomIntFromRange = (min, max) => {
 export class Block {
   constructor(x, y, width, height, color, elasticity = 0.8, playerNo = 0) {
     this.canvas = document.querySelector("canvas");
+    /**
+     * @type {CanvasRenderingContext2D}
+     */
     this.ctx = this.canvas.getContext("2d");
     this.initialX = x;
     this.x = x;
@@ -28,10 +31,10 @@ export class Block {
   draw(ctx) {
     // Draw the block
     ctx.save();
+    console.log
     ctx.translate(
       game.player.x -
         this.lineOffset +
-        this.offset +
         this.initialX +
         this.width / 2,
       this.y + this.height / 2
@@ -42,14 +45,16 @@ export class Block {
     ctx.restore();
   }
 
-  get_current_grid() {
+  get_current_grid(overlay = "none") {
     // Get the current grid the box is on
-    let grid_x = Math.floor((this.x - this.width) / 32 / 4);
-    let grid_y = Math.floor((this.y - this.height) / 32 / 4);
+    let grid_x = Math.floor((this.x + this.canvas.width/2) / 32 / 4);
+    let grid_y = Math.floor((this.y-this.height) / 32 / 4);
     try {
-      this.current_grid = game.grids[grid_y + 1][grid_x];
-      this.nextGrid = game.grids[grid_y + 1][grid_x + 1];
+      this.current_grid = game.grids[grid_y][grid_x];
+      this.nextGrid = game.grids[grid_y][grid_x + 1];
       // Highlight the grid the box is on
+      game.grids[grid_y][grid_x].outline = overlay;
+
     } catch (e) {
       // Do nothing.
     }
@@ -59,6 +64,8 @@ export class Block {
 export class Enemy2 extends Block {
   constructor(x, y, width, height, color = "red") {
     super(x, y, width, height, color);
+    this.initialX = x;
+    this.x = x;
   }
   move() {
     this.initialX += this.vx;
@@ -66,16 +73,20 @@ export class Enemy2 extends Block {
     this.y += this.vy;
   }
   checkCollisionWithWall() {
-    console.log(this.x, this.nextGrid.x)
+    console.log(this.initialX, this.vx);
     if(this.nextGrid.collidable) {
       if (this.x + this.width < this.nextGrid.x) {
         this.vx = -this.vx;
         this.initialX = this.x;
       }
     }
+    if (this.current_grid.collidable) {
+        this.vx = -this.vx;
+        this.initialX = this.x;
+    }
   }
   update() {
-    this.get_current_grid();
+    this.get_current_grid("red");
     this.checkCollisionWithWall();
     this.move();
     this.draw(this.ctx);
