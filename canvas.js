@@ -174,11 +174,14 @@ function applyTextureData(data, offset) {
                 if (Math.random() < 0.15) {
                     // Decide color of block (value)
                     let color = "gray";
+                    let texture = "img/coins/coin_gray.gif";
                     const value = Math.random();
                     if (value < 0.05) {
                         color = "blue";
+                        texture = "img/coins/coin_blue.gif";
                     } else if (value < 0.3) {
                         color = "yellow";
+                        texture = "img/coins/coin_yellow.gif";
                     }
                     console.log("Grid: " + grid.coord + " is walkable");
                     // add outline
@@ -188,7 +191,8 @@ function applyTextureData(data, offset) {
                             grid.y - 32,
                             32,
                             32,
-                            color
+                            color,
+                            texture
                         )
                     );
                 } else {

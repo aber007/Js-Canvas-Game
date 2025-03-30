@@ -138,21 +138,29 @@ export class Player {
         }
     }
     checkCollisionWithEnemy() {
-        // Check if the player is colliding with block
+        // Check if the player is colliding with enemy during collect
         for (const enemy of this.game.collect_enemies) {
             if (
                 this.inverseX -
                     this.canvas.width / 2 +
                     this.player_img.width * 3 <
-                    enemy.x + enemy.width &&
+                    enemy.x + enemy.width * 3 &&
                 this.inverseX -
                     this.canvas.width / 2 +
-                    this.player_img.width * 3 >
+                    this.player_img.width * 6 >
                     enemy.x &&
                 this.y < enemy.y + enemy.height - 100 &&
                 this.y + this.player_img.height + 128 > enemy.y
             ) {
+                if (this.game.invulnerable) return;
+                // Add value to score
                 this.game.health -= 1;
+                // Set invurnability for 1 second
+                this.game.invulnerable = true;
+                setTimeout(() => {
+                    this.game.invulnerable = false;
+                }, 3000);
+
             }
         }
     }
