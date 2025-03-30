@@ -29,13 +29,12 @@ export class Block {
     this.gridUnder = null;
     this.nextGridUnder = null;
     this.canBePickedUp = true;
-    this.showHitbox = true;
   }
 
 
   draw(ctx) {
     // Draw the block
-    if (this.showHitbox) {
+    if (game.showHitboxes) {
       this.hitbox.updateXY(
         game.player.x + this.x - this.width / 2.5,
         this.y - this.height / 2.5

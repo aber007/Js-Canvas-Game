@@ -60,10 +60,6 @@ export class Player {
       this.img_rotation = "-flip"; // If direction is left
     }
     this.player_img.src = `./img/player/${this.img_nr}${this.img_rotation}.gif`;
-    this.hitbox.updateXY(this.canvas.width/2 + this.playerOffset, this.y);
-    if (this.game.showHitboxes) {
-      this.hitbox.showOutline(this.ctx);
-    }
   }
 
   move() {
@@ -123,12 +119,8 @@ export class Player {
     // Check if the player is colliding with block
     for (const block of this.game.blocks) {
       if (
-        this.inverseX - this.canvas.width / 2 + this.player_img.width * 3 <
-          block.x + block.width &&
-        this.inverseX - this.canvas.width / 2 + this.player_img.width * 3 >
-          block.x &&
-        this.y < block.y + block.height - 100 &&
-        this.y + this.player_img.height + 128 > block.y
+        this.hitbox.collidesWith(block.hitbox) &&
+        block.canBePickedUp
       ) {
         // Add value to score
         if (block.canBePickedUp) {
@@ -154,12 +146,7 @@ checkCollisionWithEnemy() {
     // Check if the player is colliding with enemy during collect
     for (const enemy of this.game.collect_enemies) {
         if (
-            this.inverseX - this.canvas.width / 2 + this.player_img.width * 3 <
-            enemy.x + enemy.width * 3 &&
-            this.inverseX - this.canvas.width / 2 + this.player_img.width * 6 >
-            enemy.x &&
-            this.y < enemy.y + enemy.height - 100 &&
-            this.y + this.player_img.height + 128 > enemy.y
+          this.hitbox.collidesWith(enemy.hitbox)
         ) {
             if (this.game.invulnerable) return;
             // Add value to score
@@ -171,7 +158,7 @@ checkCollisionWithEnemy() {
             }, 3000);
         }
     }
-    this.hitbox.collidesWith(this.game.collect_enemies[0].hitbox);
+    
 }
 redeemCoins() {
     if (this.playerOffset < 0) {
@@ -243,10 +230,10 @@ redeemCoins() {
   }
 
   checkInteractables() {
-    if (this.playerOffset < -540 && this.playerOffset > -700) {
+    if (this.game.switchGameHitbox.collidesWith(this.hitbox, this.game.showHitboxes, this.ctx)) {
       this.game.canSwitch = true;
       this.game.showInterractable();
-    } else if (this.playerOffset > -400 && this.playerOffset < -250) {
+    } else if (this.game.shopHitbox.collidesWith(this.hitbox, this.game.showHitboxes, this.ctx)) {
       this.game.canBuy = true;
       this.game.showInterractable();
     } else {
@@ -264,6 +251,10 @@ redeemCoins() {
     this.applyGravity();
     this.move();
     this.game.updatePlayerSpeed();
+    this.hitbox.updateXY(this.canvas.width/2 + this.playerOffset, this.y);
+    if (this.game.showHitboxes) {
+      this.hitbox.showOutline(this.ctx);
+    }
     this.show_player();
     this.checkInteractables();
     this.redeemCoins();

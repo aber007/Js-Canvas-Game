@@ -8,14 +8,16 @@ export class Hitbox2D {
     }
 
     // Check if this hitbox is colliding with another hitbox
-    collidesWith(other) {
+    collidesWith(other, showHitbox = false, ctx = null) {
+        if (showHitbox) {
+            this.showOutline(ctx);
+        }
         if (
             this.x + this.width > other.x &&
             this.x < other.x + other.width &&
             this.y + this.height > other.y &&
             this.y < other.y + other.height
         ) {
-            console.log(this.identifier, "collides with", other.identifier);
             // Collision detected
             // Find the direction of the collision
             const dx = Math.abs(this.x - other.x);
@@ -37,6 +39,9 @@ export class Hitbox2D {
                     return "down"; // Move down
                 }
             }
+        } else {
+            // No collision detected
+            return false;
         }
     }
     showOutline(ctx) {
