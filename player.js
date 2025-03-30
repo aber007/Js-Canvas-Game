@@ -60,7 +60,7 @@ export class Player {
       this.img_rotation = "-flip"; // If direction is left
     }
     this.player_img.src = `./img/player/${this.img_nr}${this.img_rotation}.gif`;
-    this.hitbox.updateXY(this.canvas.width / 2 + this.playerOffset, this.y);
+    this.hitbox.updateXY(this.canvas.width/2 + this.playerOffset, this.y);
     if (this.game.showHitboxes) {
       this.hitbox.showOutline(this.ctx);
     }

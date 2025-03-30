@@ -10,10 +10,10 @@ export class Hitbox2D {
     // Check if this hitbox is colliding with another hitbox
     collidesWith(other) {
         if (
-            (this.x < other.x + other.width &&
             this.x + this.width > other.x &&
-            this.y < other.y + other.height &&
-            this.y + this.height > other.y)
+            this.x < other.x + other.width &&
+            this.y + this.height > other.y &&
+            this.y < other.y + other.height
         ) {
             console.log(this.identifier, "collides with", other.identifier);
             // Collision detected
