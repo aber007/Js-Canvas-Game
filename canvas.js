@@ -199,15 +199,6 @@ function applyTextureData(data, offset) {
                     if(Math.random() < 0.2){
                         console.log("Enemy added");
                         console.log("Enemy position: " + grid.x + " " + grid.y);
-                        game.collect_enemies.push(new Enemy2(
-                            grid.x - canvas.width / 2 + 48,
-                            grid.y - 32,
-                            64,
-                            64,
-                            "red",
-                            "img/enemy2/hedgehog_01.gif",
-                            randomIntFromRange(1, 3)
-                        ));
                     }
                 }
             }
@@ -500,6 +491,7 @@ class Game {
 
         // Img settints
         this.img_scale = 6;
+        this.showHitboxes = true;
 
         // Game state
         this.blocks = [];
@@ -514,6 +506,16 @@ class Game {
         this.yellow = 10;
         this.gray = 10;
         this.blue = 10;
+
+        this.collect_enemies.push(new Enemy2(
+            128,
+            canvas.height - 128 - 32 ,
+            64,
+            64,
+            "red",
+            "img/enemy2/hedgehog_01.gif",
+            randomIntFromRange(1, 3)
+        ));
     }
 
     showInterractable() {

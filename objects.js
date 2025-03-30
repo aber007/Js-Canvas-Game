@@ -2,8 +2,11 @@ const randomIntFromRange = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
+// Can't be named anything related to hitbox because of google chrome policy
+import { Hitbox2D } from "./objectsquare.js";
+
 export class Block {
-  constructor(x, y, width, height, color, imgSrc = "", speed = 1) {
+  constructor(x, y, width, height, color, imgSrc = "",speed = 1) {
     this.canvas = document.querySelector("canvas");
     this.ctx = this.canvas.getContext("2d");
     this.x = x;
@@ -14,9 +17,10 @@ export class Block {
     this.width = width;
     this.height = height;
     }else {
-      this.width = this.img.width;
-      this.height = this.img.height;
+      this.width = this.img.width * 4;
+      this.height = this.img.height * 4;
     }
+    this.hitbox = new Hitbox2D(this.x, this.y, this.width, this.height, "block");
     this.vx = speed;
     this.vy = 0;
     this.color = color;
@@ -25,24 +29,32 @@ export class Block {
     this.gridUnder = null;
     this.nextGridUnder = null;
     this.canBePickedUp = true;
-
+    this.showHitbox = true;
   }
+
 
   draw(ctx) {
     // Draw the block
+    if (this.showHitbox) {
+      this.hitbox.updateXY(
+        game.player.x + this.x - this.width / 2.5,
+        this.y - this.height / 2.5
+      );
+      this.hitbox.showOutline(ctx);
+    }
     ctx.save();
     if (this.img.src.includes(".gif")) {  
       ctx.translate(
-        game.player.x + this.x + this.img.height / 2,
-        this.y + this.img.height / 2
+        game.player.x + this.x + this.width / 8,
+        this.y + this.height / 8
       );
       ctx.scale(Math.sign(this.vx), 1);
       ctx.drawImage(
         this.img,
-        -this.img.width * 2,
-        -this.img.height * 2,
-        this.img.width * 4,
-        this.img.height * 4
+        -this.width / 2,
+        -this.height / 2,
+        this.width,
+        this.height
       );
     } else {
       ctx.translate(
