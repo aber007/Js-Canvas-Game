@@ -150,7 +150,6 @@ function applyTextureData(data, offset) {
         if (grid) {
             grid.img.src = data[key].img || "";
             grid.img.onload = () => grid.draw();
-            grid.img2.src = data[key].img2 || "";
             grid.collidable = data[key].collidable || false;
             grid.walkable = data[key].walkable || false;
             grid.type = "grass";
@@ -211,7 +210,6 @@ function applyTextureData(data, offset) {
             grid.coord = [row, col + offset];
             grid.img.src = data[key].img || "";
             grid.img.onload = () => grid.draw();
-            grid.img2.src = data[key].img2 || "";
             grid.collidable = data[key].collidable || false;
             grid.walkable = data[key].walkable || true;
             grid.type = undefined;
