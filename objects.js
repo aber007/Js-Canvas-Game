@@ -17,6 +17,7 @@ export class Block {
             this.width = width;
             this.height = height;
         } else {
+          console.log(this.img.src, this.img.height);
             this.width = this.img.width * 4;
             this.height = this.img.height * 4;
         }
@@ -147,13 +148,12 @@ export class Enemy2 extends Block {
 }
 // Enemies in the tower defence part
 export class Enemy extends Block {
-    constructor(x, y, width, height, game, elasticity = 0.8, playerNo = 0) {
-        super(x, y, width, height, game, elasticity, playerNo);
+    constructor(x, y, width, height, game, playerNo = 0, imgSrc = "") {
+        super(x, y, width, height, game, imgSrc, playerNo);
         this.color = "red";
         this.img_nr = 1;
         this.texture = new Image();
         this.texture.src = `./img/enemy/fly/fly${this.img_nr}.gif`;
-        this.action = "fly";
         this.y = randomIntFromRange(128, this.canvas.height - 128);
         this.x = this.canvas.width + 64;
         this.initalvx = randomIntFromRange(0.1, 0.24);
@@ -168,6 +168,15 @@ export class Enemy extends Block {
         }, randomIntFromRange(0, 250));
     }
     draw(ctx) {
+        this.hitbox.updateXY(
+            this.x,
+            this.y
+        );
+        if (game.showHitboxes) {
+          console.log(this.hitbox);
+            this.hitbox.showOutline(ctx);
+
+        }
         ctx.drawImage(
             this.texture,
             this.x,
@@ -297,6 +306,15 @@ export class CannonBall extends Block {
     }
     draw(ctx) {
         // Draw the cannon ball as a circle
+        this.hitbox.updateXY(
+          this.x - this.width / 2,
+          this.y - this.height / 2
+      );
+      if (game.showHitboxes) {
+        console.log(this.hitbox);
+          this.hitbox.showOutline(ctx);
+
+      }
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2);
         ctx.fillStyle = this.color;

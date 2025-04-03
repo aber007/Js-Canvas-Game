@@ -1047,8 +1047,8 @@ class Game {
                     new Enemy(
                         canvas.width - 128,
                         canvas.height / 2,
-                        32,
-                        64,
+                        128,
+                        80,
                         this
                     )
                 );
