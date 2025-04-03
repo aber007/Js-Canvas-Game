@@ -19,6 +19,7 @@ export class Hitbox2D {
             this.y < other.y + other.height
         ) {
             // Collision detected
+            console.log("Collision detected between " + this.identifier + " and " + other.identifier);
             // Find the direction of the collision
             const dx = Math.abs(this.x - other.x);
             const dy = Math.abs(this.y - other.y);
