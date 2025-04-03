@@ -15,8 +15,6 @@ import { Hitbox2D } from "./objectsquare.js";
 canvas.width = 1536;
 canvas.height = 768;
 
-let edit_mode = false;
-
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
@@ -41,11 +39,9 @@ class Grid {
         this.collidable = false;
         this.walkable = false;
         this.img = new Image();
-        this.img2 = new Image();
         this.back_img = new Image();
         this.type = undefined;
         this.img.src = "";
-        this.img2.src = "";
         this.back_img.src = "";
 
         this.outline = "none";
@@ -54,15 +50,6 @@ class Grid {
 
     draw(offset = 0) {
         if (this.img.src) {
-            if (this.img2.src != "") {
-                ctx.drawImage(
-                    this.img2,
-                    this.x + offset,
-                    this.y,
-                    this.width,
-                    this.height
-                );
-            }
             if (this.img.src.includes(".png")) {
                 ctx.drawImage(
                     this.img,
@@ -88,8 +75,6 @@ class Grid {
                 ctx.stroke();
                 ctx.closePath();
             }
-        } else {
-            // Do northing
         }
     }
 }
