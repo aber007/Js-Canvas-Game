@@ -26,7 +26,11 @@ export class Block {
             this.y,
             this.width,
             this.height,
-            "block"
+            "item",
+            10,
+            0,
+            12,
+            8
         );
         this.vx = speed;
         this.vy = 0;
@@ -40,13 +44,6 @@ export class Block {
 
     draw(ctx) {
         // Draw the block
-        if (game.showHitboxes) {
-            this.hitbox.updateXY(
-                game.player.x + this.x - this.width / 2.5,
-                this.y - this.height / 2.5
-            );
-            this.hitbox.showOutline(ctx);
-        }
         ctx.save();
         if (this.img.src.includes(".gif")) {
             ctx.translate(
@@ -75,8 +72,15 @@ export class Block {
             );
         }
         ctx.restore();
+        if (game.showHitboxes) {
+            this.hitbox.updateXY(
+                game.player.x + this.x - this.width / 2.5,
+                this.y - this.height / 2.5
+            );
+            this.hitbox.showOutline(ctx);
+        }
     }
-
+    
     get_current_grid() {
         // Get the current grid the box is on
         let grid_x = Math.floor((this.x + this.canvas.width / 2) / 32 / 4);
@@ -100,6 +104,10 @@ export class Enemy2 extends Block {
     constructor(x, y, width, height, color = "red", imgSrc = "", speed) {
         super(x, y, width, height, color, imgSrc, speed);
         this.animateWalk();
+        this.hitbox.identifier = "enemy";
+        this.hitbox.offsetTop = 10;
+        this.hitbox.offsetLeft = 10;
+        this.hitbox.offsetRight = 10;
     }
     animateWalk() {
         // Wait ~0.25 seconds before starting the animation
@@ -158,6 +166,8 @@ export class Enemy extends Block {
         this.x = this.canvas.width + 64;
         this.initalvx = randomIntFromRange(0.1, 0.24);
         this.canBeHit = true;
+
+        this.hitbox.identifier = "enemy";
 
         this.hitBy = [];
 
@@ -231,10 +241,8 @@ export class Enemy extends Block {
     checkCollisionWithCannonBall() {
         for (let ball of game.cannon.cannonBalls) {
             if (
-                this.x + 10 < ball.x + ball.width &&
-                this.x + this.width > ball.x &&
-                this.y < ball.y + ball.height &&
-                this.y + this.height > ball.y
+                this.hitbox.collidesWith(ball.hitbox, game.showHitboxes, this.ctx) &&
+                this.canBeHit
             ) {
                 if (this.hitBy.includes(ball) == false) {
                     this.hitBy.push(ball);
@@ -287,6 +295,12 @@ export class CannonBall extends Block {
         this.y = y;
         this.angle = angle;
         this.vx = game.cannon.ballSpeed + speed;
+
+        this.hitbox.offsetLeft = 0;
+        this.hitbox.offsetRight = 0;
+        this.hitbox.offsetTop = 0;
+        this.hitbox.offsetBottom = 0;
+
         if (
             (game.cannon.ballSpeed + speed) * this.angle <
             -(game.cannon.ballSpeed + speed)
@@ -306,20 +320,21 @@ export class CannonBall extends Block {
     }
     draw(ctx) {
         // Draw the cannon ball as a circle
+        console.log(this.hitbox)
         this.hitbox.updateXY(
           this.x - this.width / 2,
           this.y - this.height / 2
       );
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.closePath();
       if (game.showHitboxes) {
         console.log(this.hitbox);
           this.hitbox.showOutline(ctx);
 
       }
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        ctx.closePath();
     }
     playerRequiresAimingHelp() {
         // aim sligtly towaeards the closest enemy

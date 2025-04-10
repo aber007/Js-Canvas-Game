@@ -37,7 +37,11 @@ export class Player {
             this.y,
             this.width,
             this.height,
-            "player"
+            "player",
+            10,
+            0,
+            10,
+            10
         );
 
         this.onGround = false;
@@ -264,10 +268,10 @@ export class Player {
         this.move();
         this.game.updatePlayerSpeed();
         this.hitbox.updateXY(this.canvas.width / 2 + this.playerOffset, this.y);
+        this.show_player();
         if (this.game.showHitboxes) {
             this.hitbox.showOutline(this.ctx);
         }
-        this.show_player();
         this.checkInteractables();
         this.redeemCoins();
     }

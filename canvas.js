@@ -43,12 +43,11 @@ class Grid {
         this.type = undefined;
         this.img.src = "";
         this.back_img.src = "";
-
-        this.outline = "none";
+        this.hitbox = new Hitbox2D(this.x, this.y, this.width, this.height);
         this.draw();
     }
 
-    draw(offset = 0) {
+    draw(offset = 0, outline = "none") {
         if (this.img.src) {
             if (this.img.src.includes(".png")) {
                 ctx.drawImage(
@@ -68,10 +67,10 @@ class Grid {
                 );
             }
             // Draw the outline
-            if (this.outline != "none") {
+            if (outline != "none") {
                 ctx.beginPath();
                 ctx.rect(this.x + offset, this.y, this.width, this.height);
-                ctx.strokeStyle = this.outline;
+                ctx.strokeStyle = outline;
                 ctx.stroke();
                 ctx.closePath();
             }
@@ -154,6 +153,12 @@ function applyTextureData(data, offset) {
             grid.walkable = data[key].walkable || false;
             grid.type = "grass";
 
+            if (grid.walkable) {
+                grid.hitbox.identifier = "grid_walkable";
+            } else if (grid.collidable) {
+                grid.hitbox.identifier = "grid_collidable";
+            } 
+
             if (
                 data[key].walkable &&
                 grid.img.src.includes(".gif") &&
@@ -214,6 +219,11 @@ function applyTextureData(data, offset) {
             grid.walkable = data[key].walkable || true;
             grid.type = undefined;
             game.grids[row][col + offset] = grid;
+            if (grid.walkable) {
+                grid.hitbox.identifier = "grid_walkable";
+            } else if (grid.collidable) {
+                grid.hitbox.identifier = "grid_collidable";
+            } 
 
             // Get longest row
             let longest_row = 0;
@@ -968,6 +978,13 @@ class Game {
                         grid.x < this.player.inverseX + canvas.width / 2
                     ) {
                         grid.draw(this.player.x - canvas.width / 2);
+                        if (this.shopHitbox && grid.collidable) {
+                            grid.hitbox.updateXY(
+                                grid.x - canvas.width / 2 + this.player.x,
+                                grid.y
+                            );
+                            grid.hitbox.showOutline(ctx);
+                        }
                     }
                 } catch (e) {
                     console.log(e);

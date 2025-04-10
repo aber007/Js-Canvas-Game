@@ -1,10 +1,29 @@
 export class Hitbox2D {
-    constructor(x, y, width, height, identifier = "") {
+    constructor(
+        x,
+        y,
+        width,
+        height,
+        identifier = "",
+        offsetTop = 0,
+        offsetBottom = 0,
+        offsetLeft = 0,
+        offsetRight = 0
+    ) {
         this.identifier = identifier;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+
+        this.startwidth = width;
+        this.startheight = height;
+
+        this.offsetTop = offsetTop;
+        this.offsetBottom = offsetBottom;
+        this.offsetLeft = offsetLeft;
+        this.offsetRight = offsetRight;
+
+        this.x = x + this.offsetLeft,
+        this.y = y + this.offsetTop,
+        this.width = this.startwidth - this.offsetLeft - this.offsetRight,
+        this.height = this.startheight - this.offsetTop - this.offsetBottom
     }
 
     // Check if this hitbox is colliding with another hitbox
@@ -19,7 +38,12 @@ export class Hitbox2D {
             this.y < other.y + other.height
         ) {
             // Collision detected
-            console.log("Collision detected between " + this.identifier + " and " + other.identifier);
+            console.log(
+                "Collision detected between " +
+                    this.identifier +
+                    " and " +
+                    other.identifier
+            );
             // Find the direction of the collision
             const dx = Math.abs(this.x - other.x);
             const dy = Math.abs(this.y - other.y);
@@ -47,11 +71,38 @@ export class Hitbox2D {
     }
     showOutline(ctx) {
         ctx.strokeStyle = "red";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
+        switch (this.identifier) {
+            case "player":
+                ctx.strokeStyle = "blue";
+                break;
+            case "enemy":
+                ctx.strokeStyle = "red";
+                break;
+            case "item":
+                ctx.strokeStyle = "yellow";
+                break;
+            case "grid_walkable":
+                ctx.strokeStyle = "orange";
+                break;
+            case "grid_collidable":
+                ctx.strokeStyle = "purple";
+                break;
+            default:
+                ctx.strokeStyle = "green";
+        }
+
+        ctx.lineWidth = 3;
+        ctx.strokeRect(
+            this.x,
+            this.y,
+            this.width,
+            this.height
+        );
     }
     updateXY(x, y) {
-        this.x = x;
-        this.y = y;
+        this.x = x + this.offsetLeft;
+        this.y = y + this.offsetTop;
+        this.width = this.startwidth - this.offsetLeft - this.offsetRight,
+        this.height = this.startheight - this.offsetTop - this.offsetBottom
     }
 }
