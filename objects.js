@@ -17,7 +17,7 @@ export class Block {
             this.width = width;
             this.height = height;
         } else {
-          console.log(this.img.src, this.img.height);
+            console.log(this.img.src, this.img.height);
             this.width = this.img.width * 4;
             this.height = this.img.height * 4;
         }
@@ -72,15 +72,15 @@ export class Block {
             );
         }
         ctx.restore();
+        this.hitbox.updateXY(
+            game.player.x + this.x - this.width / 2.5,
+            this.y - this.height / 2.5
+        );
         if (game.showHitboxes) {
-            this.hitbox.updateXY(
-                game.player.x + this.x - this.width / 2.5,
-                this.y - this.height / 2.5
-            );
             this.hitbox.showOutline(ctx);
         }
     }
-    
+
     get_current_grid() {
         // Get the current grid the box is on
         let grid_x = Math.floor((this.x + this.canvas.width / 2) / 32 / 4);
@@ -178,14 +178,9 @@ export class Enemy extends Block {
         }, randomIntFromRange(0, 250));
     }
     draw(ctx) {
-        this.hitbox.updateXY(
-            this.x,
-            this.y
-        );
+        this.hitbox.updateXY(this.x, this.y);
         if (game.showHitboxes) {
-          console.log(this.hitbox);
             this.hitbox.showOutline(ctx);
-
         }
         ctx.drawImage(
             this.texture,
@@ -241,7 +236,11 @@ export class Enemy extends Block {
     checkCollisionWithCannonBall() {
         for (let ball of game.cannon.cannonBalls) {
             if (
-                this.hitbox.collidesWith(ball.hitbox, game.showHitboxes, this.ctx) &&
+                this.hitbox.collidesWith(
+                    ball.hitbox,
+                    game.showHitboxes,
+                    this.ctx
+                ) &&
                 this.canBeHit
             ) {
                 if (this.hitBy.includes(ball) == false) {
@@ -320,21 +319,17 @@ export class CannonBall extends Block {
     }
     draw(ctx) {
         // Draw the cannon ball as a circle
-        console.log(this.hitbox)
-        this.hitbox.updateXY(
-          this.x - this.width / 2,
-          this.y - this.height / 2
-      );
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.fill();
-      ctx.closePath();
-      if (game.showHitboxes) {
         console.log(this.hitbox);
-          this.hitbox.showOutline(ctx);
-
-      }
+        this.hitbox.updateXY(this.x - this.width / 2, this.y - this.height / 2);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.closePath();
+        if (game.showHitboxes) {
+            console.log(this.hitbox);
+            this.hitbox.showOutline(ctx);
+        }
     }
     playerRequiresAimingHelp() {
         // aim sligtly towaeards the closest enemy
@@ -349,6 +344,17 @@ export class CannonBall extends Block {
         }
         const closestEnemy =
             game.enemies[enemyDistances.indexOf(Math.min(...enemyDistances))];
+        if (game.showHitboxes) {
+            // Draw a ray from the cannon ball to the closest enemy
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.x, this.y);
+            this.ctx.lineTo(closestEnemy.x, closestEnemy.y);
+            this.ctx.strokeStyle = "red";
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+            this.ctx.closePath();
+        }
+        // Check if the cannon ball is to the left or right of the enemy
         if (closestEnemy.y < this.y) {
             this.vy -=
                 0.1 +

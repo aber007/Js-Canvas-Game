@@ -157,7 +157,7 @@ function applyTextureData(data, offset) {
                 grid.hitbox.identifier = "grid_walkable";
             } else if (grid.collidable) {
                 grid.hitbox.identifier = "grid_collidable";
-            } 
+            }
 
             if (
                 data[key].walkable &&
@@ -223,7 +223,7 @@ function applyTextureData(data, offset) {
                 grid.hitbox.identifier = "grid_walkable";
             } else if (grid.collidable) {
                 grid.hitbox.identifier = "grid_collidable";
-            } 
+            }
 
             // Get longest row
             let longest_row = 0;
@@ -508,8 +508,8 @@ class Game {
         this.shopHitbox = new Hitbox2D(370, 0, 280, canvas.height, "shop");
 
         // Debug
-        this.showHitboxes = true;
         this.showAvgFrameTime = false;
+        this.showHitboxes = true;
 
         // Img settints
         this.img_scale = 6;
@@ -524,14 +524,28 @@ class Game {
         this.playerReady = false;
         this.health = 10;
         this.maxHealth = 10;
-        this.yellow = 10;
-        this.gray = 10;
-        this.blue = 10;
+        this.gray = 0;
+        this.yellow = 0;
+        this.blue = 0;
     }
 
     showInterractable() {
         // Draw a small "E" above the player to indicate that the player can interact with something
         displayInterractButton("E");
+    }
+
+    doDebug() {
+        if (!this.showHitboxes) {
+            this.showHitboxes = true;
+            this.yellow = 999;
+            this.gray = 999;
+            this.blue = 999;
+        } else {
+            this.showHitboxes = false;
+            this.yellow = 0;
+            this.gray = 0;
+            this.blue = 0;
+        }
     }
 
     getRandomTexture() {
@@ -978,11 +992,11 @@ class Game {
                         grid.x < this.player.inverseX + canvas.width / 2
                     ) {
                         grid.draw(this.player.x - canvas.width / 2);
-                        if (this.shopHitbox && grid.collidable) {
-                            grid.hitbox.updateXY(
-                                grid.x - canvas.width / 2 + this.player.x,
-                                grid.y
-                            );
+                        grid.hitbox.updateXY(
+                            grid.x - canvas.width / 2 + this.player.x,
+                            grid.y
+                        );
+                        if (this.shopHitbox && grid.collidable && this.showHitboxes) {
                             grid.hitbox.showOutline(ctx);
                         }
                     }
@@ -1248,46 +1262,59 @@ class Game {
         }
 
         // Define event listeners
+        let debugSequence = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight"];
+        let debugIndex = 0;
+
         this.keydownListener = (e) => {
+            if (e.key === debugSequence[debugIndex]) {
+            debugIndex++;
+            if (debugIndex === debugSequence.length) {
+                this.doDebug();
+                debugIndex = 0; // Reset the sequence
+            }
+            } else {
+            debugIndex = 0; // Reset if sequence is broken
+            }
+
             if (e.key.toLowerCase() == "d") {
-                this.pressed_keys.d = true;
-                this.player.rightCollision = false;
+            this.pressed_keys.d = true;
+            this.player.rightCollision = false;
             }
             if (e.key.toLowerCase() == "a") {
-                this.pressed_keys.a = true;
-                this.player.leftCollision = false;
+            this.pressed_keys.a = true;
+            this.player.leftCollision = false;
             }
             if (e.key == " " || e.key == "Spacebar") {
-                this.pressed_keys.space = true;
-                this.player.jump();
+            this.pressed_keys.space = true;
+            this.player.jump();
             }
             if (e.key.toLowerCase() == "q") {
-                this.dropLastBlock();
+            this.dropLastBlock();
             }
             if (e.key.toLowerCase() == "e") {
-                if (this.canSwitch && this.switchOnce && !this.towerDefense) {
-                    this.switchOnce = false;
-                    this.switchGame();
-                    this.playerReady = true;
-                } else if (this.canBuy) {
-                    this.upgrades.showUpgradeShop(this);
-                }
+            if (this.canSwitch && this.switchOnce && !this.towerDefense) {
+                this.switchOnce = false;
+                this.switchGame();
+                this.playerReady = true;
+            } else if (this.canBuy) {
+                this.upgrades.showUpgradeShop(this);
+            }
             }
         };
         this.keyupListener = (e) => {
             if (e.key.toLowerCase() == "d") {
-                this.pressed_keys.d = false;
-                this.player.rightCollision = false;
+            this.pressed_keys.d = false;
+            this.player.rightCollision = false;
             }
             if (e.key.toLowerCase() == "a") {
-                this.pressed_keys.a = false;
-                this.player.leftCollision = false;
+            this.pressed_keys.a = false;
+            this.player.leftCollision = false;
             }
             if (e.key == " " || e.key == "Spacebar") {
-                this.pressed_keys.space = false;
+            this.pressed_keys.space = false;
             }
             if (e.key.toLowerCase() == "e") {
-                this.switchOnce = true;
+            this.switchOnce = true;
             }
         };
 

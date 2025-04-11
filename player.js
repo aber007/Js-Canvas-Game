@@ -132,8 +132,8 @@ export class Player {
                         this.game.inventory.push("blue");
                     }
                     this.game.weight += 1;
+                    block.canBePickedUp = false;
                 }
-                block.canBePickedUp = false;
                 // Delete block from blocks
                 const index = this.game.blocks.indexOf(block);
                 this.game.blocks.splice(index, 1);
@@ -234,6 +234,14 @@ export class Player {
     }
 
     checkInteractables() {
+        this.game.shopHitbox.updateXY(
+            370 + this.x - this.canvas.width / 2,
+            this.game.shopHitbox.y
+        );
+        this.game.switchGameHitbox.updateXY(
+            70 + this.x - this.canvas.width / 2,
+            this.game.switchGameHitbox.y
+        );
         if (
             this.game.switchGameHitbox.collidesWith(
                 this.hitbox,
@@ -264,6 +272,7 @@ export class Player {
         this.check_collision();
         this.checkCollisionWithBlock();
         this.checkCollisionWithEnemy();
+        this.checkInteractables();
         this.applyGravity();
         this.move();
         this.game.updatePlayerSpeed();
@@ -272,7 +281,6 @@ export class Player {
         if (this.game.showHitboxes) {
             this.hitbox.showOutline(this.ctx);
         }
-        this.checkInteractables();
         this.redeemCoins();
     }
 }
