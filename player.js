@@ -48,6 +48,8 @@ export class Player {
         this.leftCollision = false;
         this.rightCollision = false;
         this.lastgrid = null;
+        this.lockMovement = false; // Prevents movement when colliding with enemy
+        this.bounceBackSpeed = 6
     }
     show_player() {
         // Draw on load
@@ -68,20 +70,25 @@ export class Player {
 
     move() {
         // Update horizontal position
+        if (this.lockMovement) {
+            this.vx = this.bounceBackSpeed;
+        }
         if (this.leftCollision && this.vx < 0) {
             this.vx = 0;
         } else if (this.rightCollision && this.vx > 0) {
             this.vx = 0;
         }
         this.x += this.vx;
+        this.game.leftx -= this.vx
+        this.game.rightx -= this.vx;
         this.inverseX -= this.vx;
         // Update vertical position
         this.y += this.vy;
     }
 
-    jump() {
+    jump(force = false) {
         // Jump logic
-        if (this.onGround) {
+        if (this.onGround || force) {
             this.vy = -this.jump_speed;
             this.onGround = false;
             this.leftCollision = false;
@@ -92,6 +99,7 @@ export class Player {
         if (!this.onGround) {
             this.vy += this.gravity;
         } else {
+            this.lockMovement = false; // Reset lockMovement when grounded
             this.vy = 0; // Reset vertical velocity when grounded
         }
     }
@@ -146,8 +154,13 @@ export class Player {
         for (const enemy of this.game.collect_enemies) {
             if (this.hitbox.collidesWith(enemy.hitbox)) {
                 if (this.game.invulnerable) return;
+                console.log(this.hitbox.collidesWith(enemy.hitbox));
                 // Add value to score
                 this.game.health -= 1;
+                this.vy = 0
+                this.jump(true);
+                this.vx = 5;
+                this.lockMovement = true;
                 // Set invurnability for 1 second
                 this.game.invulnerable = true;
                 setTimeout(() => {
@@ -214,10 +227,14 @@ export class Player {
                     this.inverseX + this.player_img.width >
                     this.nextGrid.x - 32 * 2
                 ) {
+                    // Reset position to exactly where collision occurred
+                    this.inverseX =
+                        this.nextGrid.x - 32 * 2 - this.player_img.width;
+                    this.x = this.canvas.width - this.inverseX;
                     this.vx = 0;
                     this.leftCollision = true;
+                    return true;
                 }
-                return true;
             }
             if (this.current_grid.collidable && !this.rightCollision) {
                 //Right collision
@@ -225,10 +242,14 @@ export class Player {
                     this.inverseX <
                     this.current_grid.x + this.current_grid.width
                 ) {
+                    // Reset position to exactly where collision occurred
+                    this.inverseX =
+                        this.current_grid.x + this.current_grid.width;
+                    this.x = this.canvas.width - this.inverseX;
                     this.vx = 0;
                     this.rightCollision = true;
+                    return true;
                 }
-                return true;
             }
         }
     }
@@ -269,12 +290,18 @@ export class Player {
     update() {
         // Update the player's position
         this.get_current_grid();
-        this.check_collision();
+        // Check collision first, before any movement is applied
+        const collided = this.check_collision();
+
+        // Only apply movement if no collision occurred
+        if (!collided) {
+            this.move();
+        }
+
         this.checkCollisionWithBlock();
         this.checkCollisionWithEnemy();
         this.checkInteractables();
         this.applyGravity();
-        this.move();
         this.game.updatePlayerSpeed();
         this.hitbox.updateXY(this.canvas.width / 2 + this.playerOffset, this.y);
         this.show_player();

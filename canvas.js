@@ -479,9 +479,6 @@ class Game {
 
         // Game parameters
         this.gravity = 0.5;
-        this.friction = 0.9;
-        this.airResistance = 0.99;
-        this.ropeElasticity = 0.1;
 
         // Collect settings
         this.weight = 0;
@@ -619,8 +616,6 @@ class Game {
         }
 
         this.player.vx = update;
-        this.leftx -= update;
-        this.rightx -= update;
     }
 
     updatePlayerSpeed() {
@@ -915,7 +910,7 @@ class Game {
         ctx.restore();
     }
 
-    showHUD() {
+    async showHUD() {
         // Draw the HUD
         ctx.drawImage(this.hud, 0, 0, this.hud.width, this.hud.height);
 
@@ -924,6 +919,18 @@ class Game {
         const healthLength = (this.health / this.maxHealth) * maxLength;
         ctx.fillStyle = "red";
         ctx.fillRect(73, 25, healthLength, 13);
+
+        if (this.health <= 0) {
+            ctx.fillStyle = "black";
+            ctx.font = "50px Arial";
+            ctx.fillText("Game Over", canvas.width / 2 - 100, canvas.height / 2);
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve();
+                }, 2000);
+            });
+            window.close();
+        }
 
         const inventoryLength =
             (this.weight / this.player.move_speed) * maxLength;
@@ -996,7 +1003,11 @@ class Game {
                             grid.x - canvas.width / 2 + this.player.x,
                             grid.y
                         );
-                        if (this.shopHitbox && grid.collidable && this.showHitboxes) {
+                        if (
+                            this.shopHitbox &&
+                            grid.collidable &&
+                            this.showHitboxes
+                        ) {
                             grid.hitbox.showOutline(ctx);
                         }
                     }
@@ -1004,7 +1015,6 @@ class Game {
                     console.log(e);
                     console.log(grid);
                     console.log(this.grids);
-                    dispatchEvent("error", e);
                 }
             }
         }
@@ -1262,59 +1272,68 @@ class Game {
         }
 
         // Define event listeners
-        let debugSequence = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight"];
+        let debugSequence = [
+            "ArrowUp",
+            "ArrowUp",
+            "ArrowDown",
+            "ArrowDown",
+            "ArrowLeft",
+            "ArrowRight",
+            "ArrowLeft",
+            "ArrowRight",
+        ];
         let debugIndex = 0;
 
         this.keydownListener = (e) => {
             if (e.key === debugSequence[debugIndex]) {
-            debugIndex++;
-            if (debugIndex === debugSequence.length) {
-                this.doDebug();
-                debugIndex = 0; // Reset the sequence
-            }
+                debugIndex++;
+                if (debugIndex === debugSequence.length) {
+                    this.doDebug();
+                    debugIndex = 0; // Reset the sequence
+                }
             } else {
-            debugIndex = 0; // Reset if sequence is broken
+                debugIndex = 0; // Reset if sequence is broken
             }
 
             if (e.key.toLowerCase() == "d") {
-            this.pressed_keys.d = true;
-            this.player.rightCollision = false;
+                this.pressed_keys.d = true;
+                this.player.rightCollision = false;
             }
             if (e.key.toLowerCase() == "a") {
-            this.pressed_keys.a = true;
-            this.player.leftCollision = false;
+                this.pressed_keys.a = true;
+                this.player.leftCollision = false;
             }
             if (e.key == " " || e.key == "Spacebar") {
-            this.pressed_keys.space = true;
-            this.player.jump();
+                this.pressed_keys.space = true;
+                this.player.jump();
             }
             if (e.key.toLowerCase() == "q") {
-            this.dropLastBlock();
+                this.dropLastBlock();
             }
             if (e.key.toLowerCase() == "e") {
-            if (this.canSwitch && this.switchOnce && !this.towerDefense) {
-                this.switchOnce = false;
-                this.switchGame();
-                this.playerReady = true;
-            } else if (this.canBuy) {
-                this.upgrades.showUpgradeShop(this);
-            }
+                if (this.canSwitch && this.switchOnce && !this.towerDefense) {
+                    this.switchOnce = false;
+                    this.switchGame();
+                    this.playerReady = true;
+                } else if (this.canBuy) {
+                    this.upgrades.showUpgradeShop(this);
+                }
             }
         };
         this.keyupListener = (e) => {
             if (e.key.toLowerCase() == "d") {
-            this.pressed_keys.d = false;
-            this.player.rightCollision = false;
+                this.pressed_keys.d = false;
+                this.player.rightCollision = false;
             }
             if (e.key.toLowerCase() == "a") {
-            this.pressed_keys.a = false;
-            this.player.leftCollision = false;
+                this.pressed_keys.a = false;
+                this.player.leftCollision = false;
             }
             if (e.key == " " || e.key == "Spacebar") {
-            this.pressed_keys.space = false;
+                this.pressed_keys.space = false;
             }
             if (e.key.toLowerCase() == "e") {
-            this.switchOnce = true;
+                this.switchOnce = true;
             }
         };
 
