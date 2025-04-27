@@ -33,7 +33,13 @@ export class Upgrades {
     game.timer += 20 * 60;
   }
   regenerateHealth(game) {
-    if ((game.timer / 60) % 30 == 0 && upgrades["regen1"].unlocked && game.timer != game.maxTimer && game.health < game.maxHealth && game.timer > 0) {
+    if (
+      (game.timer / 60) % 30 == 0 &&
+      upgrades["regen1"].unlocked &&
+      game.timer != game.maxTimer &&
+      game.health < game.maxHealth &&
+      game.timer > 0
+    ) {
       console.log("Regenerating health");
       game.health += 1;
     }
@@ -45,16 +51,18 @@ export class Upgrades {
   }
   multishotMultiplier() {
     if (this.upgrades["multishot2"].unlocked) {
-        return 3;
+      return 3;
     } else if (this.upgrades["multishot1"].unlocked) {
-        return 2;
+      return 2;
     } else {
-        return 1;
+      return 1;
     }
-}
+  }
 
-  
-  
+  displayFinalAnimation(game){
+    game.finalAnimation = true;
+  }
+
   fixPositionOfUpgradeButons() {
     // Set level
     for (let value of Object.values(this.upgrades)) {
@@ -128,13 +136,16 @@ export class Upgrades {
             switch (upgrade.id) {
               case "dmg1":
                 upgrade.y = offset + defaulty;
-              break;
+                break;
               case "hp1":
                 upgrade.y = offset + defaulty * 3.1;
-                break
+                break;
               case "speed1":
                 upgrade.y = offset + defaulty * 4.9;
-                break
+                break;
+              case "freedom1":
+                upgrade.y = offset + defaulty * 6.1;
+                break;
               default:
                 upgrade.y = offset + defaulty;
             }

@@ -289,7 +289,7 @@ export class Player {
         }
     }
 
-    update() {
+    update(inAnimation = false) {
         // Update the player's position
         this.get_current_grid();
         // Check collision first, before any movement is applied
@@ -300,9 +300,11 @@ export class Player {
             this.move();
         }
 
-        this.checkCollisionWithBlock();
-        this.checkCollisionWithEnemy();
-        this.checkInteractables();
+        if (!inAnimation) {
+            this.checkCollisionWithBlock();
+            this.checkCollisionWithEnemy();
+            this.checkInteractables();
+        }
         this.applyGravity();
         this.game.updatePlayerSpeed();
         this.hitbox.updateXY(this.canvas.width / 2 + this.playerOffset, this.y);

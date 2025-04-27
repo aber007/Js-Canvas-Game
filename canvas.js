@@ -434,6 +434,10 @@ class Game {
     this.switchOnce = true;
     this.gameHasBeenSwitched = false;
 
+    this.finalAnimation = true;
+    this.initAnimation = true;
+    this.animationFrame = 0;
+
     this.justStarted = true;
     this.cannonJustStarted = true;
 
@@ -498,7 +502,7 @@ class Game {
 
     // Debug
     this.showAvgFrameTime = false;
-    this.showHitboxes = true;
+    this.showHitboxes = false;
 
     // Img settints
     this.img_scale = 6;
@@ -572,6 +576,7 @@ class Game {
   }
 
   doAnimations() {
+    console.log(this.player.movement_direction, this.player.onGround);
     // Do animations
     if (this.player.movement_direction != 0 && this.player.onGround) {
       this.player.img_nr += 1;
@@ -826,6 +831,37 @@ class Game {
     handleWeatherEvents(this.weather);
   }
 
+  displayNPC(offset = 0, inAnimation = false, flip = false) {
+    // Draw the NPC
+    let direction = 1;
+    if (!inAnimation) {
+      direction = -Math.sign(
+        this.player.x -
+          canvas.width / 4 +
+          100 -
+          this.npc.width * 3 -
+          this.player.playerOffset -
+          canvas.width / 2
+      );
+    } else {
+      direction = flip ? 1 : -1;
+    }
+    ctx.save();
+    ctx.translate(
+      this.player.x - canvas.width / 4 + 100 + offset,
+      canvas.height - 266
+    );
+    ctx.scale(direction, 1);
+    ctx.drawImage(
+      this.npc,
+      -this.npc.width * 3,
+      0,
+      this.npc.width * 6,
+      this.npc.height * 6
+    );
+    ctx.restore();
+  }
+
   displayCastle() {
     // Draw black background behind castle
     ctx.fillStyle = "black";
@@ -844,28 +880,6 @@ class Game {
       this.tower.width * 6,
       this.tower.height * 6
     );
-    // Draw the npc
-    ctx.save();
-    ctx.translate(this.player.x - canvas.width / 4 + 100, canvas.height - 266);
-    ctx.scale(
-      -Math.sign(
-        this.player.x -
-          canvas.width / 4 +
-          100 -
-          this.npc.width * 3 -
-          this.player.playerOffset -
-          canvas.width / 2
-      ),
-      1
-    );
-    ctx.drawImage(
-      this.npc,
-      -this.npc.width * 3,
-      0,
-      this.npc.width * 6,
-      this.npc.height * 6
-    );
-    ctx.restore();
   }
 
   async showHUD() {
@@ -918,6 +932,67 @@ class Game {
     this.upgrades.regenerateHealth(game);
   }
 
+  async wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async doFinalAnimation() {
+    console.log(this.animationFrame);
+    if (this.initAnimation) {
+      load(0);
+      this.weather = 0;
+      this.timer = this.maxTimer / 2;
+      this.initAnimation = false;
+      this.npcFlip = true;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.updateBackground();
+    this.updateWorld();
+    this.displayCastle();
+    this.displayNPC(400, true, this.npcFlip);
+    this.player.update(true);
+
+    if (this.animationFrame < 400) {
+      this.player.movement_direction = 1;
+      this.player.playerOffset = -500 + this.animationFrame;
+      this.animationFrame += 1;
+    } else if (this.animationFrame === 400) {
+      this.player.movement_direction = 0;
+      await this.wait(2000);
+      this.npcFlip = false;
+      await this.wait(2000);
+      this.animationFrame += 1;
+    }
+  }
+
+  updateWorld() {
+    // Update the world
+    for (let row of this.grids) {
+      for (let grid of row) {
+        try {
+          if (
+            grid.x + grid.width > this.player.inverseX - canvas.width / 2 &&
+            grid.x < this.player.inverseX + canvas.width / 2
+          ) {
+            grid.draw(this.player.x - canvas.width / 2);
+            grid.hitbox.updateXY(
+              grid.x - canvas.width / 2 + this.player.x,
+              grid.y
+            );
+            if (this.shopHitbox && grid.collidable && this.showHitboxes) {
+              grid.hitbox.showOutline(ctx);
+            }
+          }
+        } catch (e) {
+          console.log(e);
+          console.log(grid);
+          console.log(this.grids);
+        }
+      }
+    }
+  }
+
   updateCollect = () => {
     this.infinitewalk();
     this.checkPassiveUpgrades();
@@ -947,29 +1022,11 @@ class Game {
     // Clear and redraw only visible grids
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     this.updateBackground();
-    for (let row of this.grids) {
-      for (let grid of row) {
-        try {
-          if (
-            grid.x + grid.width > this.player.inverseX - canvas.width / 2 &&
-            grid.x < this.player.inverseX + canvas.width / 2
-          ) {
-            grid.draw(this.player.x - canvas.width / 2);
-            grid.hitbox.updateXY(
-              grid.x - canvas.width / 2 + this.player.x,
-              grid.y
-            );
-            if (this.shopHitbox && grid.collidable && this.showHitboxes) {
-              grid.hitbox.showOutline(ctx);
-            }
-          }
-        } catch (e) {
-          console.log(e);
-          console.log(grid);
-          console.log(this.grids);
-        }
-      }
-    }
+    this.updateWorld();
+    this.displayCastle();
+    this.displayNPC();
+
+    this.updateWorld();
     for (const enemy of this.collect_enemies) {
       enemy.update();
     }
@@ -978,7 +1035,6 @@ class Game {
       block.draw(ctx);
     }
     // Update and draw the player
-    this.displayCastle();
     this.player.update();
     this.showHUD();
     this.gameHasBeenSwitched = true;
@@ -1080,7 +1136,11 @@ class Game {
       if (this.showAvgFrameTime) {
         console.log("Frame time: " + elapsed.toFixed(2) + "ms");
       }
-      this.updateCollect();
+      if (this.finalAnimation) {
+        this.doFinalAnimation();
+      } else {
+        this.updateCollect();
+      }
     }
 
     // Request the next frame
@@ -1211,7 +1271,7 @@ class Game {
     ];
     if (this.justStarted) {
       this.justStarted = false;
-      // displayTextBoxSeries(introTexts);
+      //   displayTextBoxSeries(introTexts);
     }
 
     // Define event listeners

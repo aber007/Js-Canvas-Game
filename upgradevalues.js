@@ -457,3 +457,36 @@ upgrades["timer5"] = {
     costblue: 1,
     description: "Gain a permanent daytime extension.",
 };
+upgrades["freedom1"] = {
+    name: "Part of freedom",
+    id: "freedom1",
+    previous: "",
+    unlocked: false,
+    function: null,
+    costgray: 1,
+    costyellow: 1,
+    costblue: 1,
+    description: "It must be paid to be free",
+};
+upgrades["freedom2"] = {
+    name: "Almost freedom",
+    id: "freedom2",
+    previous: "freedom1",
+    unlocked: false,
+    function: null,
+    costgray: 2,
+    costyellow: 2,
+    costblue: 2,
+    description: "Almost free",
+};
+upgrades["freedom3"] = {
+    name: "Freedom",
+    id: "freedom3",
+    previous: "freedom2",
+    unlocked: false,
+    function: "displayFinalAnimation(game)",
+    costgray: 3,
+    costyellow: 3,
+    costblue: 3,
+    description: "You are free",
+};
