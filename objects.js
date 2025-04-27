@@ -317,9 +317,10 @@ export class CannonBall extends Block {
         this.alive = true;
         this.special = special;
     }
+    
     draw(ctx) {
+        console.log(this.x, this.y, this.vx, this.vy);
         // Draw the cannon ball as a circle
-        console.log(this.hitbox);
         this.hitbox.updateXY(this.x - this.width / 2, this.y - this.height / 2);
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2);
@@ -327,12 +328,12 @@ export class CannonBall extends Block {
         ctx.fill();
         ctx.closePath();
         if (game.showHitboxes) {
-            console.log(this.hitbox);
             this.hitbox.showOutline(ctx);
         }
     }
+    
     playerRequiresAimingHelp() {
-        // aim sligtly towaeards the closest enemy
+        // aim slightly towards the closest enemy
         let enemyDistances = [];
         if (game.enemies.length == 0) {
             return;
@@ -387,10 +388,13 @@ export class CannonBall extends Block {
             this.killCannonBall();
         }
     }
+    
     killCannonBall() {
         this.alive = false;
         // Remove the cannon ball from the cannon balls array
         const index = game.cannon.cannonBalls.indexOf(this);
-        game.cannon.cannonBalls.splice(index, 1);
+        if (index !== -1) {  // Only remove if the ball is in the array
+            game.cannon.cannonBalls.splice(index, 1);
+        }
     }
 }

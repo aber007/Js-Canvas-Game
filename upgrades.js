@@ -38,6 +38,11 @@ export class Upgrades {
       game.health += 1;
     }
   }
+  increaseAttackSpeed(game) {
+    console.log("Increasing attack speed");
+    game.cannon.normalMaxCooldown *= 0.9;
+    game.cannon.specialMaxCooldown *= 0.9;
+  }
   multishotMultiplier() {
     if (this.upgrades["multishot2"].unlocked) {
         return 3;

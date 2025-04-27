@@ -25,7 +25,7 @@ function createTextBox(top = "100px", left = "50%", width = "300px", borderRadiu
 
 export async function displayInterractButton(text) {
     // Display a circular text box at the top right of the screen
-  displayTextBox(text, 1000/60, "700px", "100px", "20px", "50%", "center", "arial", "false");
+    displayTextBox(text, 100, "700px", "100px", "20px", "50%", "center", "arial", false);
 }
 
 export async function displayTextBoxSeries(texts, duration = 0) {

@@ -114,6 +114,8 @@ export class Player {
             this.vy = 0;
             this.game.health -= 1;
             this.game.timer = Math.max(this.game.timer - 60 * 20, 0);
+            this.game.leftx = this.x - this.canvas.width / 2;
+            this.game.rightx = this.x + this.canvas.width / 2;
         }
         // Get the current grid the player is on
         let grid_x = Math.floor(this.inverseX / 32 / 4);
@@ -152,14 +154,14 @@ export class Player {
     checkCollisionWithEnemy() {
         // Check if the player is colliding with enemy during collect
         for (const enemy of this.game.collect_enemies) {
-            if (this.hitbox.collidesWith(enemy.hitbox)) {
+            const hit = this.hitbox.collidesWith(enemy.hitbox);
+            if (hit) {
                 if (this.game.invulnerable) return;
-                console.log(this.hitbox.collidesWith(enemy.hitbox));
                 // Add value to score
                 this.game.health -= 1;
                 this.vy = 0
                 this.jump(true);
-                this.vx = 5;
+                this.vx = 5
                 this.lockMovement = true;
                 // Set invurnability for 1 second
                 this.game.invulnerable = true;

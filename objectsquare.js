@@ -37,13 +37,6 @@ export class Hitbox2D {
             this.y + this.height > other.y &&
             this.y < other.y + other.height
         ) {
-            // Collision detected
-            console.log(
-                "Collision detected between " +
-                    this.identifier +
-                    " and " +
-                    other.identifier
-            );
             // Find the direction of the collision
             const dx = Math.abs(this.x - other.x);
             const dy = Math.abs(this.y - other.y);
@@ -70,6 +63,7 @@ export class Hitbox2D {
         }
     }
     showOutline(ctx) {
+        // Displayes the hitbox for debugging purposes
         ctx.strokeStyle = "red";
         switch (this.identifier) {
             case "player":
@@ -100,6 +94,7 @@ export class Hitbox2D {
         );
     }
     updateXY(x, y) {
+        // Updates the x and y position of the hitbox
         this.x = x + this.offsetLeft;
         this.y = y + this.offsetTop;
         this.width = this.startwidth - this.offsetLeft - this.offsetRight,
