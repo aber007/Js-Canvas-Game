@@ -19,6 +19,7 @@ var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
 function showLoadingScreen() {
+  // Show a loading screen while the images are loading
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "white";
@@ -28,6 +29,7 @@ function showLoadingScreen() {
 showLoadingScreen();
 
 class Grid {
+  // Class for all tiles in the game
   constructor(x, y, color) {
     this.x = x;
     this.y = y;
@@ -48,6 +50,7 @@ class Grid {
   }
 
   draw(offset = 0, outline = "none") {
+    // Draw the grid
     if (this.img.src) {
       if (this.img.src.includes(".png")) {
         ctx.drawImage(
@@ -83,7 +86,7 @@ let savefile = {};
 function unload() {
   // Clear the canvas section and redraw the default grid
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  savefile = {}; // Clear the savefile object
+  savefile = {};
   // Clear the  this.grids array
   grids = [];
   for (let j = 0; j < 8; j++) {
@@ -95,16 +98,16 @@ function unload() {
       let y = j * 32 * 4;
       row.push(new Grid(x, y, "lightblue")); // Add each Grid to the current row
     }
-    grids.push(row); // Add the row to the grids array
+    grids.push(row);
   }
 }
 
 function load(texture_nr = null, offset = 0) {
+  // Automatically load the specified texture file
   if (texture_nr !== null) {
-    // Automatically load the specified texture file
     let fileName = `img/textures/texture${texture_nr}.json`;
 
-    // Use fetch or an equivalent method to load the JSON file
+    // Gets the json file
     fetch(fileName)
       .then((response) => {
         if (!response.ok) throw new Error(`Failed to load file: ${fileName}`);
@@ -118,7 +121,7 @@ function load(texture_nr = null, offset = 0) {
         console.log(`Error: ${err}`);
       });
   } else {
-    // Allow the user to select a file manually
+    // Allow the user to select a file manually (debugging)
     let input = document.createElement("input");
     input.type = "file";
     input.accept = "application/json";
@@ -143,7 +146,7 @@ function load(texture_nr = null, offset = 0) {
 // Helper function to apply the loaded data to the grid
 function applyTextureData(data, offset) {
   for (let key in data) {
-    let [row, col] = key.split(",").map(Number); // Parse grid coordinates
+    let [row, col] = key.split(",").map(Number);
     let grid = game.grids[row][col + offset];
     if (grid) {
       grid.img.src = data[key].img || "";
@@ -576,7 +579,6 @@ class Game {
   }
 
   doAnimations() {
-    console.log(this.player.movement_direction, this.player.onGround);
     // Do animations
     if (this.player.movement_direction != 0 && this.player.onGround) {
       this.player.img_nr += 1;
@@ -937,31 +939,69 @@ class Game {
   }
 
   async doFinalAnimation() {
-    console.log(this.animationFrame);
     if (this.initAnimation) {
       load(0);
       this.weather = 0;
       this.timer = this.maxTimer / 2;
       this.initAnimation = false;
       this.npcFlip = true;
+
+      this.textDisplayed = false;
+      this.enemyThrown = false;
+      this.blackScreenAlpha = 0;
+      this.npcPosition = this.player.x - canvas.width / 4 + 100 + 400; // Store NPC position for enemy to walk to
     }
 
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     this.updateBackground();
     this.updateWorld();
     this.displayCastle();
+    
     this.displayNPC(400, true, this.npcFlip);
     this.player.update(true);
 
+    // Black screen overlay
+    if (this.animationFrame >= 1100) {
+      this.blackScreenAlpha = Math.min(1, (this.animationFrame - 1100) / 60); // Fade over 60 frames
+      ctx.fillStyle = `rgba(0, 0, 0, ${this.blackScreenAlpha})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // End animation after full black
+      if (this.blackScreenAlpha >= 1 && this.animationFrame > 1200) {
+        this.finalAnimation = false;
+        this.timer = this.maxTimer;
+        // Any additional code to transition to the next game state
+      }
+    }
+
+    // Step 1: Player walks to NPC
     if (this.animationFrame < 400) {
       this.player.movement_direction = 1;
       this.player.playerOffset = -500 + this.animationFrame;
       this.animationFrame += 1;
-    } else if (this.animationFrame === 400) {
+    }
+    // Step 2: NPC flips and text appears
+    else if (this.animationFrame === 400) {
       this.player.movement_direction = 0;
       await this.wait(2000);
-      this.npcFlip = false;
+      this.npcFlip = false; // NPC flips to face the player
       await this.wait(2000);
+      this.animationFrame += 1;
+      this.textDisplayed = true;
+    }
+    // Display text
+    else if (this.animationFrame > 400 && this.animationFrame < 600) {
+      if (this.textDisplayed) {
+        displayTextBox("I have a little surprise for you...", 3000);
+        this.textDisplayed = false;
+      }
+      this.animationFrame += 1;
+    }
+    // Step 4: Player turns around and walks left
+    else if (this.animationFrame > 600) {
+      this.player.movement_direction = -1;
+      this.player.playerOffset = 500 - this.animationFrame;
       this.animationFrame += 1;
     }
   }
