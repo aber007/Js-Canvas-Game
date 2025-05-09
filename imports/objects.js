@@ -42,19 +42,25 @@ export class Block {
         this.canBePickedUp = true;
     }
 
-    draw(ctx) {
+    draw(ctx, type = "") {
         // Draw the block
+        let scale = 1;
+        let offset = 0;
+        if (type === "bunny") {
+            scale = 1.6;
+            offset = -1;
+        }
         ctx.save();
         if (this.img.src.includes(".gif")) {
             ctx.translate(
                 game.player.x + this.x + this.width / 8,
                 this.y + this.height / 8
             );
-            ctx.scale(Math.sign(this.vx), 1);
+            ctx.scale(Math.sign(this.vx) * scale, 1 * scale);
             ctx.drawImage(
                 this.img,
                 -this.width / 2,
-                -this.height / 2,
+                -this.height / 2 + offset,
                 this.width,
                 this.height
             );
@@ -101,13 +107,14 @@ export class Block {
 }
 // Enemies in the platformer part
 export class Enemy2 extends Block {
-    constructor(x, y, width, height, color = "red", imgSrc = "", speed) {
+    constructor(x, y, width, height, color = "red", imgSrc = "", speed, type) {
         super(x, y, width, height, color, imgSrc, speed);
         this.animateWalk();
         this.hitbox.identifier = "enemy";
         this.hitbox.offsetTop = 10;
         this.hitbox.offsetLeft = 10;
         this.hitbox.offsetRight = 10;
+        this.type = type;
     }
     animateWalk() {
         // Wait ~0.25 seconds before starting the animation
@@ -118,7 +125,7 @@ export class Enemy2 extends Block {
             } else {
                 this.img_nr = 1;
             }
-            this.img.src = `./img/enemy2/hedgehog/hedgehog_0${this.img_nr}.gif`;
+            this.img.src = `./img/enemy2/${this.type}/${this.type}_0${this.img_nr}.gif`;
         }, 100);
     }
 
@@ -148,7 +155,7 @@ export class Enemy2 extends Block {
         }
     }
     update() {
-        this.draw(this.ctx);
+        this.draw(this.ctx, this.type);
         this.get_current_grid();
         this.checkCollisionWithWall();
         this.move();

@@ -26,7 +26,7 @@ export class Player {
         this.current_grid = null;
         this.jump_height = 0;
         this.player_img = new Image();
-        this.gravity = 0.5;
+        this.gravity = 0.55;
         this.img_nr = 1;
         this.img_rotation = "";
         this.player_img.src = `./img/player/${this.img_nr}${this.img_rotation}.gif`;
@@ -97,7 +97,9 @@ export class Player {
     }
     applyGravity() {
         if (!this.onGround) {
-            this.vy += this.gravity;
+            if (this.vy < 15) {
+                this.vy += this.gravity;
+            }
         } else {
             this.lockMovement = false; // Reset lockMovement when grounded
             this.vy = 0; // Reset vertical velocity when grounded
@@ -156,6 +158,13 @@ export class Player {
         for (const enemy of this.game.collect_enemies) {
             const hit = this.hitbox.collidesWith(enemy.hitbox);
             if (hit) {
+                if (hit === "up" && enemy.type === "bunny") {
+                    this.game.collect_enemies.splice(
+                        this.game.collect_enemies.indexOf(enemy),
+                        1
+                    );
+                    return;
+                }
                 if (this.game.invulnerable) return;
                 // Add value to score
                 this.game.health -= 1;
@@ -199,12 +208,12 @@ export class Player {
                 (this.current_grid.walkable &&
                     this.vy > 0 &&
                     this.y < this.current_grid.y &&
-                    this.y - this.current_grid.y < -115) || // Falling downward
+                    this.y - this.current_grid.y < 0) || // Falling downward
                 (this.vy > 0 &&
                     this.nextGrid.walkable &&
                     nextGridOffset <
                         this.player_img.width * this.game.img_scale &&
-                    this.y - this.current_grid.y < -115)
+                    this.y - this.current_grid.y < 0)
             ) {
                 this.vy = 0;
                 this.y =

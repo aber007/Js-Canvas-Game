@@ -196,6 +196,7 @@ function applyTextureData(data, offset) {
                     if (Math.random() < 0.2) {
                         console.log("Enemy added");
                         console.log("Enemy position: " + grid.x + " " + grid.y);
+                        const type = Math.random() < 0.5 ? "bunny" : "hedgehog";
                         game.collect_enemies.push(
                             new Enemy2(
                                 grid.x - canvas.width / 2 + 48,
@@ -203,8 +204,10 @@ function applyTextureData(data, offset) {
                                 64,
                                 64,
                                 "red",
-                                "img/enemy2/hedgehog/hedgehog_01.gif",
-                                randomIntFromRange(1, 3)
+                                `img/enemy2/${type}/${type}_01.gif`,
+                                randomIntFromRange(1, 3),
+                                type,
+
                             )
                         );
                     }
@@ -446,7 +449,7 @@ class Game {
         this.switchOnce = true;
         this.gameHasBeenSwitched = false;
 
-        this.finalAnimation = true;
+        this.finalAnimation = false;
         this.initAnimation = true;
         this.animationFrame = 0;
 
@@ -1361,7 +1364,7 @@ class Game {
         ];
         if (this.justStarted) {
             this.justStarted = false;
-            //   displayTextBoxSeries(introTexts);
+              displayTextBoxSeries(introTexts);
         }
 
         // Define event listeners
