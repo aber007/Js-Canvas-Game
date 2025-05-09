@@ -118,7 +118,7 @@ export class Enemy2 extends Block {
             } else {
                 this.img_nr = 1;
             }
-            this.img.src = `./img/enemy2/hedgehog_0${this.img_nr}.gif`;
+            this.img.src = `./img/enemy2/hedgehog/hedgehog_0${this.img_nr}.gif`;
         }, 100);
     }
 
@@ -141,7 +141,7 @@ export class Enemy2 extends Block {
             ) {
                 this.vx = -this.vx;
             }
-            // Not 0 to avoid damage when far left
+            // Not 0 to avoid damage to player when far left
             if (this.x < 128) {
                 this.vx = -this.vx;
             }

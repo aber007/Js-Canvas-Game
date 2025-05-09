@@ -6,7 +6,7 @@ export class Player {
         this.canvas = canvas;
         this.ctx = ctx;
         /**
-         * @type {import('./canvas.js').Game}
+         * @type {import('../canvas.js').Game}
          */
 
         this.game = game;
@@ -49,7 +49,7 @@ export class Player {
         this.rightCollision = false;
         this.lastgrid = null;
         this.lockMovement = false; // Prevents movement when colliding with enemy
-        this.bounceBackSpeed = 6
+        this.bounceBackSpeed = 6;
     }
     show_player() {
         // Draw on load
@@ -79,7 +79,7 @@ export class Player {
             this.vx = 0;
         }
         this.x += this.vx;
-        this.game.leftx -= this.vx
+        this.game.leftx -= this.vx;
         this.game.rightx -= this.vx;
         this.inverseX -= this.vx;
         // Update vertical position
@@ -159,9 +159,9 @@ export class Player {
                 if (this.game.invulnerable) return;
                 // Add value to score
                 this.game.health -= 1;
-                this.vy = 0
+                this.vy = 0;
                 this.jump(true);
-                this.vx = 5
+                this.vx = 5;
                 this.lockMovement = true;
                 // Set invurnability for 1 second
                 this.game.invulnerable = true;
