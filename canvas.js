@@ -206,8 +206,7 @@ function applyTextureData(data, offset) {
                                 "red",
                                 `img/enemy2/${type}/${type}_01.gif`,
                                 randomIntFromRange(1, 3),
-                                type,
-
+                                type
                             )
                         );
                     }
@@ -677,49 +676,63 @@ class Game {
             let oppacity = 0.5;
             this.allowLightning = false;
 
-            const drawRain = () => {
-                ctx.strokeStyle = "rgba(174,194,224,0.5)";
-                ctx.lineWidth = 1;
-                ctx.lineCap = "round";
-                for (let drop of this.rainDrops) {
-                    ctx.beginPath();
-                    ctx.moveTo(
-                        drop.x + this.player.x - canvas.width / 2,
-                        drop.y
-                    );
-                    ctx.lineTo(
-                        drop.x + this.player.x - canvas.width / 2,
-                        drop.y + drop.length
-                    );
-                    ctx.stroke();
-                }
-            };
-
             const updateRain = (maxRainDrops) => {
-                while (this.rainDrops.length < maxRainDrops) {
-                    this.rainDrops.push({
-                        x: Math.random() * canvas.width * 2 - canvas.width / 2,
-                        y: Math.random() * canvas.height,
-                        length: Math.random() * 20,
-                        speed: Math.random() * 5 + 10,
-                    });
+                // Creation of rain
+                const canvasWidth = canvas.width;
+                const halfCanvasWidth = canvasWidth / 2;
+                const playerInverseX = this.player.inverseX;
+
+                // Create new drops only when needed
+                const neededDrops = maxRainDrops - this.rainDrops.length;
+                if (neededDrops > 0) {
+                    for (let i = 0; i < neededDrops; i++) {
+                        this.rainDrops.push({
+                            x:
+                                Math.random() * canvasWidth * 2 -
+                                halfCanvasWidth,
+                            y: Math.random() * canvas.height,
+                            length: Math.random() * 20,
+                            speed: Math.random() * 5 + 10,
+                        });
+                    }
                 }
-                for (let drop of this.rainDrops) {
+
+                const canvasHeight = canvas.height - 128;
+                for (let i = 0; i < this.rainDrops.length; i++) {
+                    const drop = this.rainDrops[i];
                     drop.y += drop.speed;
-                    if (drop.y > canvas.height - 128) {
+                    if (drop.y > canvasHeight) {
                         drop.y = -drop.length;
                         drop.x =
-                            Math.random() * canvas.width * 2 -
-                            canvas.width / 2 +
-                            this.player.inverseX -
-                            canvas.width / 2;
+                            Math.random() * canvasWidth * 2 -
+                            halfCanvasWidth +
+                            playerInverseX -
+                            halfCanvasWidth;
                     }
                 }
             };
 
+            const drawRain = () => {
+                ctx.strokeStyle = "rgba(174,194,224,0.5)";
+                ctx.lineWidth = 1;
+                ctx.lineCap = "round";
+                ctx.beginPath(); // Start a single path for all rain drops
+
+                const offsetX = this.player.x - canvas.width / 2;
+
+                for (let i = 0; i < this.rainDrops.length; i++) {
+                    const drop = this.rainDrops[i];
+                    const x = drop.x + offsetX;
+                    ctx.moveTo(x, drop.y);
+                    ctx.lineTo(x, drop.y + drop.length);
+                }
+
+                ctx.stroke(); // Single stroke call for all lines
+            };
+
             const animateRain = (maxRainDrops) => {
-                drawRain();
                 updateRain(maxRainDrops);
+                drawRain();
             };
 
             if (event == 0) {
@@ -1005,7 +1018,7 @@ class Game {
             this.blackScreenAlpha = 0;
             this.npcPosition = this.player.x - canvas.width / 4 + 100 + 400; // Store NPC position for enemy to walk to
             if (this.upgradeShopVisible) {
-            this.upgrades.showUpgradeShop(this);
+                this.upgrades.showUpgradeShop(this);
             }
         }
 
@@ -1364,7 +1377,7 @@ class Game {
         ];
         if (this.justStarted) {
             this.justStarted = false;
-              displayTextBoxSeries(introTexts);
+            displayTextBoxSeries(introTexts);
         }
 
         // Define event listeners
