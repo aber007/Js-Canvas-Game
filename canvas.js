@@ -168,7 +168,7 @@ function applyTextureData(data, offset) {
                 grid.x > canvas.width / 2
             ) {
                 // Chance to add a block at that row
-                if (Math.random() < 0.15) {
+                if (Math.random() < 0.3) {
                     // Decide color of block (value)
                     let color = "gray";
                     let texture = "img/coins/coin_gray.gif";
